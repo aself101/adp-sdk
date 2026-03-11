@@ -5,8 +5,8 @@ export class AdpAPIError extends Error {
   readonly endpoint?: string;
   readonly responseHeaders?: Record<string, string>;
 
-  constructor(message: string, code: string, httpStatus?: number, endpoint?: string, responseHeaders?: Record<string, string>) {
-    super(message);
+  constructor(message: string, code: string, httpStatus?: number, endpoint?: string, responseHeaders?: Record<string, string>, cause?: unknown) {
+    super(message, cause !== undefined ? { cause } : undefined);
     this.name = 'AdpAPIError';
     this.code = code;
     this.httpStatus = httpStatus;

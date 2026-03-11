@@ -32,6 +32,15 @@ export class AdpHttpClient {
     this.log = config.log;
     this.timeoutMs = config.timeoutMs;
 
+    if (config.rejectUnauthorized === false) {
+      const warning = '[adp-sdk] WARNING: rejectUnauthorized is false — TLS certificate verification is disabled. Do not use this in production.';
+      if (this.log) {
+        this.log(warning);
+      } else {
+        console.warn(warning);
+      }
+    }
+
     this.agent = new https.Agent({
       cert: fs.readFileSync(config.certPath),
       key: fs.readFileSync(config.keyPath),
@@ -85,19 +94,23 @@ export class AdpHttpClient {
         await this.tokenRefresher();
         const newToken = await this.tokenGetter();
 
-        const response = await this.client.request<T>({
-          method,
-          url,
-          headers: {
-            Authorization: `Bearer ${newToken}`,
-            ...headers,
-          },
-        });
+        try {
+          const response = await this.client.request<T>({
+            method,
+            url,
+            headers: {
+              Authorization: `Bearer ${newToken}`,
+              ...headers,
+            },
+          });
 
-        return {
-          data: response.data,
-          headers: normalizeHeaders(response.headers),
-        };
+          return {
+            data: response.data,
+            headers: normalizeHeaders(response.headers),
+          };
+        } catch (retryErr) {
+          throw this.transformError(retryErr, url);
+        }
       }
 
       throw this.transformError(err, url);
@@ -137,16 +150,16 @@ export class AdpHttpClient {
       const responseHeaders = err.response?.headers ? normalizeHeaders(err.response.headers) : undefined;
 
       if (status === 401 || status === 403) {
-        return new AdpAPIError(`Authentication failed: ${err.message}`, ERROR_CODES.AUTH_FAILED, status, endpoint);
+        return new AdpAPIError(`Authentication failed: ${err.message}`, ERROR_CODES.AUTH_FAILED, status, endpoint, undefined, err);
       }
       if (status && status >= 500) {
-        return new AdpAPIError(`Server error: ${err.message}`, ERROR_CODES.SERVICE_UNAVAILABLE, status, endpoint);
+        return new AdpAPIError(`Server error: ${err.message}`, ERROR_CODES.SERVICE_UNAVAILABLE, status, endpoint, undefined, err);
       }
       if (err.code === 'ECONNABORTED') {
-        return new AdpAPIError(`Request timeout: ${err.message}`, ERROR_CODES.TIMEOUT, undefined, endpoint);
+        return new AdpAPIError(`Request timeout: ${err.message}`, ERROR_CODES.TIMEOUT, undefined, endpoint, undefined, err);
       }
       if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
-        return new AdpAPIError(`Network error: ${err.message}`, ERROR_CODES.NETWORK_ERROR, undefined, endpoint);
+        return new AdpAPIError(`Network error: ${err.message}`, ERROR_CODES.NETWORK_ERROR, undefined, endpoint, undefined, err);
       }
       return new AdpAPIError(
         `Request failed: ${err.message}`,
@@ -154,11 +167,12 @@ export class AdpHttpClient {
         status,
         endpoint,
         responseHeaders,
+        err,
       );
     }
 
     if (err instanceof Error) {
-      return new AdpAPIError(err.message, ERROR_CODES.REQUEST_FAILED, undefined, endpoint);
+      return new AdpAPIError(err.message, ERROR_CODES.REQUEST_FAILED, undefined, endpoint, undefined, err);
     }
 
     return new AdpAPIError(String(err), ERROR_CODES.REQUEST_FAILED, undefined, endpoint);

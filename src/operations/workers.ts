@@ -4,6 +4,20 @@ import type { AsyncHeaders } from '../types-internal.js';
 import { AdpAPIError } from '../errors.js';
 import { API_PATHS, ASYNC_POLL_MAX_ATTEMPTS, ERROR_CODES } from '../config/constants.js';
 
+/** Validate ADP OID format — alphanumeric, hyphens, and underscores only */
+function validateOid(oid: string): void {
+  if (!/^[A-Z0-9_-]+$/i.test(oid)) {
+    throw new AdpAPIError(`Invalid OID format: ${oid}`, ERROR_CODES.REQUEST_FAILED);
+  }
+}
+
+/** Validate that a poll URL uses HTTPS to prevent redirect attacks */
+function validatePollUrl(url: string): void {
+  if (!url.startsWith('https://') && !url.startsWith('/')) {
+    throw new AdpAPIError('Unsafe async poll URL: must be HTTPS or a relative path', ERROR_CODES.REQUEST_FAILED);
+  }
+}
+
 function pause(seconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
@@ -11,7 +25,9 @@ function pause(seconds: number): Promise<void> {
 /** Parse async link and retry-after from response headers */
 function parseAsyncHeaders(headers: Record<string, string>): AsyncHeaders {
   const linkHeader = headers['link'] ?? '';
-  const retryAfter = Number(headers['retry-after'] ?? '10');
+  const rawRetryAfter = headers['retry-after'];
+  const parsed = rawRetryAfter !== undefined ? parseFloat(rawRetryAfter) : NaN;
+  const retryAfter = !isNaN(parsed) ? parsed : 10;
 
   const match = linkHeader.match(/<([^>]+)>/);
   const link = match?.[1] ?? linkHeader;
@@ -38,6 +54,7 @@ export async function fetchAllWorkersAsync(
   });
 
   const { link, retryAfter } = parseAsyncHeaders(initial.headers);
+  validatePollUrl(link);
   log?.(`Async processing started. Polling in ${retryAfter}s...`);
 
   // Step 2: Wait then poll for results
@@ -46,8 +63,9 @@ export async function fetchAllWorkersAsync(
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const result = await httpClient.request<{ workers: AdpWorkerRaw[] }>('GET', link);
-      log?.(`Fetched ${result.data.workers.length} workers`);
-      return result.data.workers;
+      const workers = result.data.workers ?? [];
+      log?.(`Fetched ${workers.length} workers`);
+      return workers;
     } catch (err) {
       if (err instanceof AdpAPIError && err.httpStatus === 202 && err.responseHeaders) {
         const pollHeaders = parseAsyncHeaders(err.responseHeaders);
@@ -71,6 +89,7 @@ export async function fetchWorker(
   httpClient: AdpHttpClient,
   oid: string,
 ): Promise<AdpWorkerRaw | undefined> {
+  validateOid(oid);
   const result = await httpClient.request<{ workers: AdpWorkerRaw[] }>(
     'GET',
     API_PATHS.WORKER(oid),

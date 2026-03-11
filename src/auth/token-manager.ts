@@ -1,6 +1,7 @@
 import type { AdpHttpClient } from '../http/http-client.js';
 import type { AdpToken } from '../types-internal.js';
-import { TOKEN_TTL_SECONDS, TOKEN_REFRESH_BUFFER_SECONDS } from '../config/constants.js';
+import { TOKEN_TTL_SECONDS, TOKEN_REFRESH_BUFFER_SECONDS, ERROR_CODES } from '../config/constants.js';
+import { AdpAPIError } from '../errors.js';
 
 export class TokenManager {
   private readonly clientIdAndSecretBase64: string;
@@ -51,6 +52,9 @@ export class TokenManager {
     );
 
     const accessToken = response.data.access_token;
+    if (!accessToken) {
+      throw new AdpAPIError('Token endpoint did not return access_token', ERROR_CODES.AUTH_FAILED);
+    }
     const expiresAt = Date.now() + (TOKEN_TTL_SECONDS - TOKEN_REFRESH_BUFFER_SECONDS) * 1000;
 
     this.token = { accessToken, expiresAt };
