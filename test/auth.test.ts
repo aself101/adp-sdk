@@ -58,6 +58,32 @@ describe('TokenManager', () => {
     expect(httpClient.requestNoAuth).toHaveBeenCalledTimes(2);
   });
 
+  it('re-fetches token when expired', async () => {
+    const httpClient = createMockHttpClient();
+    const tm = new TokenManager('id', 'secret', 'https://token-url', null);
+
+    // First call fetches token
+    await tm.getValidToken(httpClient);
+    expect(httpClient.requestNoAuth).toHaveBeenCalledTimes(1);
+
+    // Simulate token expiry by advancing Date.now past the TTL
+    const realNow = Date.now;
+    Date.now = () => realNow() + 4000 * 1000; // 4000s > TTL(3600) - buffer(100)
+
+    try {
+      (httpClient.requestNoAuth as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        data: { access_token: 'refreshed-token' },
+        headers: {},
+      });
+
+      const token = await tm.getValidToken(httpClient);
+      expect(token).toBe('refreshed-token');
+      expect(httpClient.requestNoAuth).toHaveBeenCalledTimes(2);
+    } finally {
+      Date.now = realNow;
+    }
+  });
+
   it('deduplicates concurrent refresh calls', async () => {
     const httpClient = createMockHttpClient();
     const tm = new TokenManager('id', 'secret', 'https://token-url', null);

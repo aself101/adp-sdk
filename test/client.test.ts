@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AdpClient } from '../src/client.js';
-import type { AdpClientConfig } from '../src/types.js';
+import { testConfig, getLatestMockClient } from './helpers.js';
 
 // Mock fs.readFileSync to return dummy cert/key
 vi.mock('node:fs', () => ({
@@ -23,22 +23,6 @@ vi.mock('axios', async () => {
     },
   };
 });
-
-const testConfig: AdpClientConfig = {
-  baseUrl: 'https://api.adp.com',
-  certPath: '/fake/cert.pem',
-  keyPath: '/fake/key.pem',
-  clientId: 'test-client-id',
-  clientSecret: 'test-client-secret',
-  tokenUrl: 'https://accounts.adp.com/auth/oauth/v2/token',
-};
-
-/** Helper: get the mock axios instance from the most recent axios.create call */
-async function getLatestMockClient() {
-  const { default: axios } = await import('axios');
-  const results = (axios.create as ReturnType<typeof vi.fn>).mock.results;
-  return results[results.length - 1]!.value as { request: ReturnType<typeof vi.fn> };
-}
 
 describe('AdpClient', () => {
   beforeEach(() => {

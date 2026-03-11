@@ -14,7 +14,11 @@ function parseAsyncHeaders(headers: Record<string, string>): AsyncHeaders {
   const retryAfter = Number(headers['retry-after'] ?? '10');
 
   const match = linkHeader.match(/<([^>]+)>/);
-  const link = match ? match[1]! : linkHeader;
+  const link = match?.[1] ?? linkHeader;
+
+  if (!link) {
+    throw new AdpAPIError('ADP async response missing Link header', ERROR_CODES.REQUEST_FAILED);
+  }
 
   return { link, retryAfter };
 }

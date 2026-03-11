@@ -1,9 +1,24 @@
-import axios, { type AxiosInstance } from 'axios';
+import axios, { type AxiosInstance, type AxiosResponseHeaders, type RawAxiosResponseHeaders } from 'axios';
 import https from 'node:https';
 import fs from 'node:fs';
 import { AdpAPIError } from '../errors.js';
 import { ERROR_CODES } from '../config/constants.js';
 import type { ResolvedConfig } from '../config/loaders.js';
+
+/** Convert AxiosHeaders to plain Record<string, string> */
+function normalizeHeaders(headers: AxiosResponseHeaders | RawAxiosResponseHeaders): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (headers && typeof headers === 'object') {
+    for (const [key, value] of Object.entries(headers)) {
+      if (typeof value === 'string') {
+        result[key] = value;
+      } else if (Array.isArray(value)) {
+        result[key] = value.join(', ');
+      }
+    }
+  }
+  return result;
+}
 
 export class AdpHttpClient {
   private readonly client: AxiosInstance;
@@ -61,7 +76,7 @@ export class AdpHttpClient {
 
       return {
         data: response.data,
-        headers: response.headers as Record<string, string>,
+        headers: normalizeHeaders(response.headers),
       };
     } catch (err) {
       // On 401, try one token refresh and retry
@@ -81,7 +96,7 @@ export class AdpHttpClient {
 
         return {
           data: response.data,
-          headers: response.headers as Record<string, string>,
+          headers: normalizeHeaders(response.headers),
         };
       }
 
@@ -108,7 +123,7 @@ export class AdpHttpClient {
 
       return {
         data: response.data,
-        headers: response.headers as Record<string, string>,
+        headers: normalizeHeaders(response.headers),
       };
     } catch (err) {
       throw this.transformError(err, url);
@@ -119,7 +134,7 @@ export class AdpHttpClient {
   private transformError(err: unknown, endpoint: string): AdpAPIError {
     if (axios.isAxiosError(err)) {
       const status = err.response?.status;
-      const responseHeaders = err.response?.headers as Record<string, string> | undefined;
+      const responseHeaders = err.response?.headers ? normalizeHeaders(err.response.headers) : undefined;
 
       if (status === 401 || status === 403) {
         return new AdpAPIError(`Authentication failed: ${err.message}`, ERROR_CODES.AUTH_FAILED, status, endpoint);
