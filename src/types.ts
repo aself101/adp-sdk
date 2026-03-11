@@ -8,6 +8,8 @@ export interface AdpClientConfig {
   readonly clientSecret?: string;
   readonly timeoutMs?: number;
   readonly logger?: (message: string) => void;
+  /** Set to false to disable server certificate verification (e.g. self-signed CA). Default: true (secure). */
+  readonly rejectUnauthorized?: boolean;
 }
 
 /** Raw ADP API response shapes */
@@ -104,4 +106,13 @@ export interface AdpCompetency {
   categoryCode: AdpNameCode;
   acquisitionDate?: string;
   experienceDuration?: string;
+}
+
+export interface AdpVacationBalance {
+  timeOffPolicyCode: AdpNameCode;
+  balanceAsOfDate?: string;
+  totalHoursQuantity?: number;
+  usedHoursQuantity?: number;
+  plannedHoursQuantity?: number;
+  availableHoursQuantity?: number;
 }

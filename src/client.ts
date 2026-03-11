@@ -1,4 +1,4 @@
-import type { AdpClientConfig, AdpWorkerRaw } from './types.js';
+import type { AdpClientConfig, AdpWorkerRaw, AdpCompetency, AdpVacationBalance } from './types.js';
 import { loadConfig } from './config/loaders.js';
 import { AdpHttpClient } from './http/http-client.js';
 import { TokenManager } from './auth/token-manager.js';
@@ -41,12 +41,12 @@ export class AdpClient {
   }
 
   /** Fetch talent/competency data for a worker */
-  async fetchTalent(oid: string): Promise<unknown> {
+  async fetchTalent(oid: string): Promise<AdpCompetency[]> {
     return fetchTalent(this.httpClient, oid);
   }
 
   /** Fetch vacation/time-off balances for a worker */
-  async fetchVacationBalances(oid: string): Promise<unknown> {
+  async fetchVacationBalances(oid: string): Promise<AdpVacationBalance[]> {
     return fetchVacationBalances(this.httpClient, oid);
   }
 

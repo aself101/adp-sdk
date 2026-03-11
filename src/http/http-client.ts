@@ -7,8 +7,7 @@ import type { ResolvedConfig } from '../config/loaders.js';
 
 export class AdpHttpClient {
   private readonly client: AxiosInstance;
-  private readonly certPath: string;
-  private readonly keyPath: string;
+  private readonly agent: https.Agent;
   private readonly timeoutMs: number;
   private readonly log: ((message: string) => void) | null;
   private tokenGetter: (() => Promise<string>) | null = null;
@@ -16,20 +15,18 @@ export class AdpHttpClient {
 
   constructor(config: ResolvedConfig) {
     this.log = config.log;
-    this.certPath = config.certPath;
-    this.keyPath = config.keyPath;
     this.timeoutMs = config.timeoutMs;
 
-    const agent = new https.Agent({
+    this.agent = new https.Agent({
       cert: fs.readFileSync(config.certPath),
       key: fs.readFileSync(config.keyPath),
-      rejectUnauthorized: false,
+      rejectUnauthorized: config.rejectUnauthorized,
     });
 
     this.client = axios.create({
       baseURL: config.baseUrl,
       timeout: config.timeoutMs,
-      httpsAgent: agent,
+      httpsAgent: this.agent,
     });
   }
 
@@ -105,11 +102,7 @@ export class AdpHttpClient {
         url,
         data,
         headers,
-        httpsAgent: new https.Agent({
-          cert: fs.readFileSync(this.certPath),
-          key: fs.readFileSync(this.keyPath),
-          rejectUnauthorized: false,
-        }),
+        httpsAgent: this.agent,
         timeout: this.timeoutMs,
       });
 

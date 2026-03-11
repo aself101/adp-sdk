@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import type { AdpClientConfig } from '../types.js';
 import { DEFAULT_BASE_URL, DEFAULT_TOKEN_URL, DEFAULT_TIMEOUT_MS } from './constants.js';
 
@@ -11,6 +10,7 @@ export interface ResolvedConfig {
   readonly clientId: string;
   readonly clientSecret: string;
   readonly timeoutMs: number;
+  readonly rejectUnauthorized: boolean;
   readonly log: ((message: string) => void) | null;
 }
 
@@ -35,6 +35,7 @@ export function loadConfig(config?: AdpClientConfig): ResolvedConfig {
     clientId,
     clientSecret,
     timeoutMs: config?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    rejectUnauthorized: config?.rejectUnauthorized ?? true,
     log: config?.logger ?? null,
   };
 }

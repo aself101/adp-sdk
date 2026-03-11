@@ -18,13 +18,10 @@ vi.mock('axios', async () => {
   return {
     default: {
       create: mockCreate,
-      post: mockPost,
       isAxiosError,
       request: vi.fn(),
     },
   };
-
-  function mockPost() {}
 });
 
 const testConfig: AdpClientConfig = {

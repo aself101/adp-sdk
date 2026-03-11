@@ -15,4 +15,5 @@ export type {
   AdpReportsTo,
   AdpCustomFieldGroup,
   AdpCompetency,
+  AdpVacationBalance,
 } from './types.js';
