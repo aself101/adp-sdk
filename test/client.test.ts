@@ -90,6 +90,27 @@ describe('AdpClient', () => {
     expect(mockClient.request).toHaveBeenCalledTimes(2);
   });
 
+  it('fetchWorker returns undefined when workers array is empty', async () => {
+    const { default: axios } = await import('axios');
+
+    const client = new AdpClient(testConfig);
+    const mockClient = await getLatestMockClient();
+
+    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { access_token: 'tok' },
+      headers: {},
+    });
+
+    mockClient.request.mockResolvedValueOnce({
+      data: { workers: [] },
+      headers: {},
+    });
+
+    const result = await client.fetchWorker('NONEXISTENT');
+
+    expect(result).toBeUndefined();
+  });
+
   it('fetchWorker sends unmasked accept header', async () => {
     const { default: axios } = await import('axios');
 

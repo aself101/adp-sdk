@@ -93,6 +93,20 @@ describe('fetchAllWorkersAsync', () => {
     await expect(fetchAllWorkersAsync(httpClient, null)).rejects.toThrow('unexpected');
   });
 
+  it('throws immediately with maxAttempts=0', async () => {
+    const httpClient = createMockHttpClient();
+    const request = httpClient.request as ReturnType<typeof vi.fn>;
+
+    request.mockResolvedValueOnce({
+      data: {},
+      headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
+    });
+
+    await expect(fetchAllWorkersAsync(httpClient, null, 0)).rejects.toThrow('timed out after max poll attempts');
+    // Only the initial request should have been made, no poll attempts
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it('throws on missing link header', async () => {
     const httpClient = createMockHttpClient();
     const request = httpClient.request as ReturnType<typeof vi.fn>;

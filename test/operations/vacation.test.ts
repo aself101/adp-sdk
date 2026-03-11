@@ -31,4 +31,16 @@ describe('fetchVacationBalances', () => {
       '/time/v2/workers/OID456/time-off-details/time-off-balances',
     );
   });
+
+  it('returns empty array when paidTimeOffDetails is missing from response', async () => {
+    const httpClient = createMockHttpClient();
+    (httpClient.request as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: {},
+      headers: {},
+    });
+
+    const result = await fetchVacationBalances(httpClient, 'OID456');
+
+    expect(result).toEqual([]);
+  });
 });

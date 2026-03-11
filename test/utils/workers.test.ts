@@ -16,6 +16,10 @@ describe('findPrimaryWorkAssignment', () => {
       { primaryIndicator: false, jobTitle: 'First' },
       { primaryIndicator: false, jobTitle: 'Second' },
     ] as AdpWorkAssignment[];
-    expect(findPrimaryWorkAssignment(assignments).jobTitle).toBe('First');
+    expect(findPrimaryWorkAssignment(assignments)!.jobTitle).toBe('First');
+  });
+
+  it('returns undefined for empty array', () => {
+    expect(findPrimaryWorkAssignment([])).toBeUndefined();
   });
 });

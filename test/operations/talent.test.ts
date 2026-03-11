@@ -27,4 +27,16 @@ describe('fetchTalent', () => {
       '/talent/v2/associates/OID123/associate-competencies',
     );
   });
+
+  it('returns empty array when associateCompetencies is missing from response', async () => {
+    const httpClient = createMockHttpClient();
+    (httpClient.request as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      data: {},
+      headers: {},
+    });
+
+    const result = await fetchTalent(httpClient, 'OID123');
+
+    expect(result).toEqual([]);
+  });
 });
