@@ -19,10 +19,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Config-time cert/key read failures now use `CONFIG_ERROR` code instead of `REQUEST_FAILED`
-- Cert/key error messages now include actionable fix hints (file path + env var name)
+- Cert/key error messages now include actionable fix hints (env var name) without leaking filesystem paths
 - `ASYNC_TIMEOUT` error message now includes attempt count and actionable suggestions
 - Quick start example uses realistic paths (`./certs/`) and `process.env` instead of placeholder strings
-- Production `rejectUnauthorized: false` check uses `CONFIG_ERROR` code
+- OID validation moved into `API_PATHS` constructors — impossible to skip regardless of caller
+- Circuit breaker backoff ceiling raised from 30s to 300s to resist brute-force token refresh
+- Removed `NODE_ENV` production guard for `rejectUnauthorized: false` (was a false security boundary)
+
+### Security
+
+- **Domain allowlist** on `baseUrl` and `tokenUrl` prevents credential exfiltration via environment variable poisoning (default: `.adp.com`)
+- Async poll URLs validated against base domain hostname and normalized to prevent path traversal
+- Error messages no longer expose filesystem paths (cert/key locations)
+- Configurable `allowedDomains` option for custom ADP environments
 
 ## [1.0.1] - 2026-03-12
 
