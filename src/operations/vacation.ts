@@ -9,6 +9,8 @@ export async function fetchVacationBalances(
   oid: string,
 ): Promise<AdpVacationBalance[]> {
   validateOid(oid);
+  // SAFETY: response shape is a trusted assertion on ADP's documented API contract.
+  // The `?? []` fallback handles missing/empty responses gracefully.
   const result = await httpClient.request<{ paidTimeOffDetails: AdpVacationBalance[] }>(
     'GET',
     API_PATHS.VACATION(oid),

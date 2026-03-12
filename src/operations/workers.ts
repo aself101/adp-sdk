@@ -55,6 +55,8 @@ export async function fetchAllWorkersAsync(
   await pause(retryAfter);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // SAFETY: `workers` shape is a trusted assertion on the ADP API contract, not runtime-validated.
+    // The `?? []` and `.workers` optional access below handle missing/empty responses gracefully.
     const result = await httpClient.request<{ workers?: AdpWorker[] }>('GET', link);
 
     // Data ready — return workers
@@ -82,6 +84,7 @@ export async function fetchWorker(
   oid: string,
 ): Promise<AdpWorker | undefined> {
   validateOid(oid);
+  // SAFETY: response shape is a trusted assertion on ADP's documented API contract.
   const result = await httpClient.request<{ workers: AdpWorker[] }>(
     'GET',
     API_PATHS.WORKER(oid),

@@ -1,7 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { TokenManager } from '../src/auth/token-manager.js';
 import { AdpAPIError } from '../src/errors.js';
+import { TOKEN_TTL_SECONDS, TOKEN_REFRESH_BUFFER_SECONDS } from '../src/config/constants.js';
 import type { AdpHttpClient } from '../src/http/http-client.js';
+
+/** Token becomes stale after TTL minus refresh buffer */
+const TOKEN_LIFETIME_MS = (TOKEN_TTL_SECONDS - TOKEN_REFRESH_BUFFER_SECONDS) * 1000;
 
 function createMockHttpClient(): AdpHttpClient {
   return {
@@ -23,13 +27,15 @@ describe('TokenManager', () => {
     expect(httpClient.requestNoAuth).toHaveBeenCalledTimes(1);
   });
 
-  it('caches token on subsequent calls', async () => {
+  it('returns cached token on subsequent calls', async () => {
     const httpClient = createMockHttpClient();
     const tm = new TokenManager('client-id', 'client-secret', 'https://token-url', null);
 
-    await tm.getValidToken(httpClient);
-    await tm.getValidToken(httpClient);
+    const token1 = await tm.getValidToken(httpClient);
+    const token2 = await tm.getValidToken(httpClient);
 
+    expect(token1).toBe('mock-token-123');
+    expect(token2).toBe('mock-token-123');
     expect(httpClient.requestNoAuth).toHaveBeenCalledTimes(1);
   });
 
@@ -69,7 +75,7 @@ describe('TokenManager', () => {
 
     // Simulate token expiry by advancing Date.now past the TTL
     const realNow = Date.now;
-    Date.now = () => realNow() + 4000 * 1000; // 4000s > TTL(3600) - buffer(100)
+    Date.now = () => realNow() + TOKEN_LIFETIME_MS + 500_000; // past expiry
 
     try {
       (httpClient.requestNoAuth as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
@@ -98,8 +104,8 @@ describe('TokenManager', () => {
       await tm.getValidToken(httpClient);
       expect(httpClient.requestNoAuth).toHaveBeenCalledTimes(1);
 
-      // Advance to exactly the expiry boundary: TTL(3600) - buffer(100) = 3500s
-      Date.now = () => startTime + 3500 * 1000;
+      // Advance to exactly the expiry boundary
+      Date.now = () => startTime + TOKEN_LIFETIME_MS;
 
       (httpClient.requestNoAuth as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         data: { access_token: 'boundary-token' },

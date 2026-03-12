@@ -9,6 +9,8 @@ export async function fetchTalent(
   oid: string,
 ): Promise<AdpCompetency[]> {
   validateOid(oid);
+  // SAFETY: response shape is a trusted assertion on ADP's documented API contract.
+  // The `?? []` fallback handles missing/empty responses gracefully.
   const result = await httpClient.request<{ associateCompetencies: AdpCompetency[] }>(
     'GET',
     API_PATHS.TALENT(oid),

@@ -2,6 +2,8 @@
 
 TypeScript SDK for the ADP Workforce API. Handles mTLS OAuth authentication, async worker polling, and employee data retrieval.
 
+Requires **Node.js >= 18**.
+
 ## Installation
 
 ```bash
@@ -70,7 +72,7 @@ const client = new AdpClient({
 - **`fetchWorker(oid)`** — Fetches a single worker by associate OID with unmasked data. Returns `Promise<AdpWorker | undefined>`.
 - **`fetchTalent(oid)`** — Fetches talent/competency data. Returns `Promise<AdpCompetency[]>`.
 - **`fetchVacationBalances(oid)`** — Fetches vacation/time-off balances. Returns `Promise<AdpVacationBalance[]>`.
-- **`refreshAuth()`** — Forces a token refresh.
+- **`refreshAuth()`** — Forces a token refresh. Useful after credential rotation or to proactively refresh before a burst of requests.
 
 ### Error Handling
 
@@ -95,7 +97,7 @@ try {
 
 ```typescript
 import { AdpClient } from 'adp-sdk';
-import type { AdpWorker, AdpCompetency } from 'adp-sdk/types';
+import type { AdpWorker, AdpCompetency, AdpVacationBalance, AdpClientConfig } from 'adp-sdk/types';
 import { AdpAPIError } from 'adp-sdk/errors';
 import { findPrimaryWorkAssignment } from 'adp-sdk/utils';
 import { API_PATHS, ERROR_CODES } from 'adp-sdk/config';
