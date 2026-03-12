@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AdpClient } from '../src/client.js';
-import { testConfig, getLatestMockClient } from './helpers.js';
+import { testConfig, getLatestMockClient, setupTokenMock } from './helpers.js';
 
 // Mock fs.readFileSync to return dummy cert/key
 vi.mock('node:fs', () => ({
@@ -91,15 +91,10 @@ describe('AdpClient', () => {
   });
 
   it('fetchAllWorkersAsync delegates through client and returns workers', async () => {
-    const { default: axios } = await import('axios');
-
     const client = new AdpClient(testConfig);
     const mockClient = await getLatestMockClient();
 
-    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
-      data: { access_token: 'tok' },
-      headers: {},
-    });
+    await setupTokenMock();
 
     // Initial async request
     mockClient.request.mockResolvedValueOnce({
@@ -120,15 +115,10 @@ describe('AdpClient', () => {
   });
 
   it('fetchTalent delegates through client and returns competencies', async () => {
-    const { default: axios } = await import('axios');
-
     const client = new AdpClient(testConfig);
     const mockClient = await getLatestMockClient();
 
-    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
-      data: { access_token: 'tok' },
-      headers: {},
-    });
+    await setupTokenMock();
 
     mockClient.request.mockResolvedValueOnce({
       data: { associateCompetencies: [{ competencyID: 'C1' }] },
@@ -141,15 +131,10 @@ describe('AdpClient', () => {
   });
 
   it('fetchVacationBalances delegates through client and returns balances', async () => {
-    const { default: axios } = await import('axios');
-
     const client = new AdpClient(testConfig);
     const mockClient = await getLatestMockClient();
 
-    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
-      data: { access_token: 'tok' },
-      headers: {},
-    });
+    await setupTokenMock();
 
     mockClient.request.mockResolvedValueOnce({
       data: { paidTimeOffDetails: [{ balance: 40 }] },
@@ -184,15 +169,10 @@ describe('AdpClient', () => {
   });
 
   it('fetchWorker returns undefined when workers array is empty', async () => {
-    const { default: axios } = await import('axios');
-
     const client = new AdpClient(testConfig);
     const mockClient = await getLatestMockClient();
 
-    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
-      data: { access_token: 'tok' },
-      headers: {},
-    });
+    await setupTokenMock();
 
     mockClient.request.mockResolvedValueOnce({
       data: { workers: [] },
@@ -205,15 +185,10 @@ describe('AdpClient', () => {
   });
 
   it('fetchWorker sends unmasked accept header', async () => {
-    const { default: axios } = await import('axios');
-
     const client = new AdpClient(testConfig);
     const mockClient = await getLatestMockClient();
 
-    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
-      data: { access_token: 'tok' },
-      headers: {},
-    });
+    await setupTokenMock();
 
     mockClient.request.mockResolvedValueOnce({
       data: { workers: [{ associateOID: 'OID1' }] },

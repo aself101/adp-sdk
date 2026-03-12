@@ -1,4 +1,4 @@
-# adp-sdk
+# adp-sdk v1.0.0
 
 TypeScript SDK for the ADP Workforce API. Handles mTLS OAuth authentication, async worker polling, and employee data retrieval.
 
@@ -92,6 +92,18 @@ try {
   }
 }
 ```
+
+### Error Codes
+
+| Code | Meaning |
+|------|---------|
+| `AUTH_FAILED` | OAuth authentication or authorization failure (401/403) |
+| `TOKEN_EXPIRED` | Cached token expired and needs refresh |
+| `REQUEST_FAILED` | Generic request failure (non-auth, non-timeout) |
+| `TIMEOUT` | Request timed out (ECONNABORTED) |
+| `NETWORK_ERROR` | Network-level failure (ECONNREFUSED, ENOTFOUND) |
+| `SERVICE_UNAVAILABLE` | Server error (5xx response) |
+| `ASYNC_TIMEOUT` | Async worker poll exceeded max attempts |
 
 ## Subpath Exports
 

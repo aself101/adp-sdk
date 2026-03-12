@@ -20,8 +20,8 @@ function pause(seconds: number): Promise<void> {
 function parseAsyncHeaders(headers: Record<string, string>): AsyncHeaders {
   const linkHeader = headers['link'] ?? '';
   const rawRetryAfter = headers['retry-after'];
-  const parsed = rawRetryAfter !== undefined ? parseFloat(rawRetryAfter) : NaN;
-  const retryAfter = !isNaN(parsed) ? parsed : 10;
+  const parsed = rawRetryAfter !== undefined ? Number(rawRetryAfter) : NaN;
+  const retryAfter = !isNaN(parsed) && parsed >= 0 && parsed <= 300 ? parsed : 10;
 
   const match = linkHeader.match(/<([^>]+)>/);
   const link = match?.[1] ?? linkHeader;

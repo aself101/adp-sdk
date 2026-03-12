@@ -91,4 +91,9 @@ export class AdpClient {
   async refreshAuth(): Promise<void> {
     await this.tokenManager.refreshToken(this.httpClient);
   }
+
+  /** Zero all cached credentials and tokens. Call when shutting down. */
+  destroy(): void {
+    this.tokenManager.destroy();
+  }
 }

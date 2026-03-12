@@ -6,5 +6,6 @@ import type { AdpWorkAssignment } from '../types.js';
  * as a fallback when no primary is designated. Returns `undefined` for empty arrays.
  */
 export function findPrimaryWorkAssignment(assignments: AdpWorkAssignment[]): AdpWorkAssignment | undefined {
+  if (assignments.length === 0) return undefined;
   return assignments.find(a => a.primaryIndicator) ?? assignments[0];
 }

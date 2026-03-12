@@ -41,9 +41,19 @@ export class TokenManager {
     }
   }
 
-  /** Invalidate cached token */
+  /** Invalidate cached token and zero sensitive fields */
   clearToken(): void {
-    this.token = null;
+    if (this.token) {
+      this.token.accessToken = '';
+      this.token = null;
+    }
+  }
+
+  /** Zero all credentials and cached state. Call when done with this manager. */
+  destroy(): void {
+    this.clearToken();
+    (this as unknown as { clientIdAndSecretBase64: string }).clientIdAndSecretBase64 = '';
+    this.refreshPromise = null;
   }
 
   private async doRefresh(httpClient: AdpHttpClient): Promise<string> {
