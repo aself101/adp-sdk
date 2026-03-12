@@ -3,8 +3,10 @@ import type { AdpToken } from '../types-internal.js';
 import { TOKEN_TTL_SECONDS, TOKEN_REFRESH_BUFFER_SECONDS, ERROR_CODES } from '../config/constants.js';
 import { AdpAPIError } from '../errors.js';
 
-/** Maximum consecutive auth failures before requiring a longer cooldown */
+/** Maximum consecutive auth failures before circuit breaker locks out */
 const MAX_CONSECUTIVE_FAILURES = 5;
+/** Maximum backoff ceiling in seconds (5 minutes) */
+const MAX_BACKOFF_SECONDS = 300;
 
 export class TokenManager {
   private readonly clientIdAndSecretBase64: string;
@@ -41,7 +43,12 @@ export class TokenManager {
     }
   }
 
-  /** Invalidate cached token and zero sensitive fields */
+  /**
+   * Invalidate cached token and zero sensitive fields.
+   * NOTE: JavaScript strings are immutable — setting accessToken = '' creates a new string
+   * but the original remains in V8 heap memory until garbage collected. This is a best-effort
+   * zeroing; for environments requiring cryptographic erasure, consider a process-level solution.
+   */
   clearToken(): void {
     if (this.token) {
       this.token.accessToken = '';
@@ -52,7 +59,7 @@ export class TokenManager {
   /** Get the current auth/circuit breaker status for observability */
   getAuthStatus(): { hasToken: boolean; consecutiveFailures: number; circuitBreakerOpen: boolean } {
     const circuitBreakerOpen = this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES &&
-      (Date.now() - this.lastFailureTime) < Math.min(2 ** this.consecutiveFailures, 30) * 1000;
+      (Date.now() - this.lastFailureTime) < Math.min(2 ** this.consecutiveFailures, MAX_BACKOFF_SECONDS) * 1000;
     return {
       hasToken: this.token !== null && Date.now() < this.token.expiresAt,
       consecutiveFailures: this.consecutiveFailures,
@@ -70,7 +77,7 @@ export class TokenManager {
   private async doRefresh(httpClient: AdpHttpClient): Promise<string> {
     // Enforce backoff cooldown after consecutive failures
     if (this.consecutiveFailures > 0) {
-      const cooldownMs = Math.min(2 ** this.consecutiveFailures, 30) * 1000;
+      const cooldownMs = Math.min(2 ** this.consecutiveFailures, MAX_BACKOFF_SECONDS) * 1000;
       const elapsed = Date.now() - this.lastFailureTime;
       if (elapsed < cooldownMs) {
         const reason = this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES

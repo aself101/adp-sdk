@@ -3,13 +3,30 @@ import type { AdpWorker } from '../types.js';
 import type { AsyncHeaders } from '../types-internal.js';
 import { AdpAPIError } from '../errors.js';
 import { API_PATHS, ASYNC_POLL_MAX_ATTEMPTS, ERROR_CODES } from '../config/constants.js';
-import { validateOid } from '../utils/validation.js';
 
-/** Validate that a poll URL uses HTTPS to prevent redirect attacks */
-function validatePollUrl(url: string): void {
-  if (!url.startsWith('https://') && !url.startsWith('/')) {
-    throw new AdpAPIError('Unsafe async poll URL: must be HTTPS or a relative path', ERROR_CODES.REQUEST_FAILED);
+/**
+ * Validate and normalize a poll URL.
+ * - Absolute URLs must use HTTPS and match the base domain
+ * - Relative paths are normalized to prevent traversal (e.g., /../admin)
+ */
+function validatePollUrl(url: string, baseUrl: string): string {
+  if (url.startsWith('https://')) {
+    const pollHost = new URL(url).hostname;
+    const baseHost = new URL(baseUrl).hostname;
+    if (pollHost !== baseHost) {
+      throw new AdpAPIError(
+        `Async poll URL hostname "${pollHost}" does not match base URL hostname "${baseHost}"`,
+        ERROR_CODES.REQUEST_FAILED,
+      );
+    }
+    return url;
   }
+  if (url.startsWith('/')) {
+    // Normalize to prevent path traversal via /../ sequences
+    const resolved = new URL(url, baseUrl);
+    return resolved.pathname + resolved.search;
+  }
+  throw new AdpAPIError('Unsafe async poll URL: must be HTTPS or a relative path', ERROR_CODES.REQUEST_FAILED);
 }
 
 function pause(seconds: number): Promise<void> {
@@ -38,6 +55,7 @@ export async function fetchAllWorkersAsync(
   httpClient: AdpHttpClient,
   logger?: ((message: string) => void) | null,
   maxAttempts: number = ASYNC_POLL_MAX_ATTEMPTS,
+  baseUrl: string = 'https://api.adp.com',
 ): Promise<AdpWorker[]> {
   logger?.('Initiating async worker fetch...');
 
@@ -47,8 +65,8 @@ export async function fetchAllWorkersAsync(
     Prefer: 'respond-async',
   });
 
-  const { link, retryAfter } = parseAsyncHeaders(initial.headers);
-  validatePollUrl(link);
+  const { link: rawLink, retryAfter } = parseAsyncHeaders(initial.headers);
+  const link = validatePollUrl(rawLink, baseUrl);
   logger?.(`Async processing started. Polling in ${retryAfter}s...`);
 
   // Step 2: Wait then poll for results
@@ -67,6 +85,7 @@ export async function fetchAllWorkersAsync(
 
     // Still processing (202 or empty response) — parse headers and poll again
     const pollHeaders = result.headers['link'] ? parseAsyncHeaders(result.headers) : null;
+    if (pollHeaders) validatePollUrl(pollHeaders.link, baseUrl);
     const waitTime = pollHeaders?.retryAfter ?? retryAfter;
     logger?.(`Still processing, retry in ${waitTime}s (attempt ${attempt + 1}/${maxAttempts})`);
     await pause(waitTime);
@@ -84,7 +103,7 @@ export async function fetchWorker(
   httpClient: AdpHttpClient,
   oid: string,
 ): Promise<AdpWorker | undefined> {
-  validateOid(oid);
+  // OID validation is enforced by API_PATHS.WORKER() at path construction time
   // SAFETY: response shape is a trusted assertion on ADP's documented API contract.
   const result = await httpClient.request<{ workers: AdpWorker[] }>(
     'GET',

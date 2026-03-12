@@ -26,6 +26,7 @@ import { fetchVacationBalances } from './operations/vacation.js';
 export class AdpClient {
   private readonly httpClient: AdpHttpClient;
   private readonly tokenManager: TokenManager;
+  private readonly baseUrl: string;
   private readonly logger: ((message: string) => void) | null;
 
   /**
@@ -34,6 +35,7 @@ export class AdpClient {
    */
   constructor(config?: AdpClientConfig) {
     const resolved = loadConfig(config);
+    this.baseUrl = resolved.baseUrl;
     this.logger = resolved.logger;
 
     this.httpClient = new AdpHttpClient(resolved);
@@ -59,7 +61,7 @@ export class AdpClient {
    * @returns All worker records from the ADP API
    */
   async fetchAllWorkersAsync(options?: { maxAttempts?: number }): Promise<AdpWorker[]> {
-    return fetchAllWorkersAsync(this.httpClient, this.logger, options?.maxAttempts);
+    return fetchAllWorkersAsync(this.httpClient, this.logger, options?.maxAttempts, this.baseUrl);
   }
 
   /**

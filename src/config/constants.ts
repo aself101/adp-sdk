@@ -8,16 +8,36 @@ export const ASYNC_POLL_MAX_ATTEMPTS = 30;
 export const DEFAULT_BASE_URL = 'https://api.adp.com';
 export const DEFAULT_TOKEN_URL = 'https://accounts.adp.com/auth/oauth/v2/token?grant_type=client_credentials';
 
-/** ADP API endpoint paths */
+/**
+ * Allowed hostname suffixes for baseUrl and tokenUrl.
+ * Prevents credential exfiltration via env poisoning or config injection.
+ * Override with `allowedDomains` in config for custom ADP environments.
+ */
+export const DEFAULT_ALLOWED_DOMAINS = ['.adp.com'] as const;
+
+/**
+ * Validate ADP OID format at the path construction layer.
+ * Enforced here (not at caller) to prevent path injection regardless of which operation uses the path.
+ */
+function safeOid(oid: string): string {
+  if (!/^[A-Z0-9_-]+$/i.test(oid)) {
+    throw new Error(
+      `Invalid OID format: "${oid}". Expected alphanumeric characters, hyphens, or underscores only (e.g., "WORKER_123-ABC").`,
+    );
+  }
+  return oid;
+}
+
+/** ADP API endpoint paths — OID parameters are validated at construction time */
 export const API_PATHS = {
   /** Bulk workers endpoint (`/hr/v2/workers`) */
   WORKERS: '/hr/v2/workers',
   /** Single worker by OID (`/hr/v2/workers/:oid`) */
-  WORKER: (oid: string) => `/hr/v2/workers/${oid}`,
+  WORKER: (oid: string) => `/hr/v2/workers/${safeOid(oid)}`,
   /** Talent/competency data for a worker */
-  TALENT: (oid: string) => `/talent/v2/associates/${oid}/associate-competencies`,
+  TALENT: (oid: string) => `/talent/v2/associates/${safeOid(oid)}/associate-competencies`,
   /** Vacation/time-off balance data for a worker */
-  VACATION: (oid: string) => `/time/v2/workers/${oid}/time-off-details/time-off-balances`,
+  VACATION: (oid: string) => `/time/v2/workers/${safeOid(oid)}/time-off-details/time-off-balances`,
 } as const;
 
 /** Machine-readable error codes for {@link AdpAPIError.code} */

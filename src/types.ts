@@ -29,6 +29,12 @@ export interface AdpClientConfig {
   readonly logger?: (message: string) => void;
   /** Set to `false` to disable TLS certificate verification (e.g. self-signed CA). Default: `true` (secure). **Not recommended for production.** */
   readonly rejectUnauthorized?: boolean;
+  /**
+   * Allowed hostname suffixes for `baseUrl` and `tokenUrl`.
+   * Prevents credential exfiltration via environment variable poisoning.
+   * Default: `['.adp.com']`. Override for custom ADP environments (e.g. sandbox domains).
+   */
+  readonly allowedDomains?: readonly string[];
 }
 
 /** ADP name/code pair used across API responses for coded values */
