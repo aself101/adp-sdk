@@ -33,6 +33,12 @@ export class AdpHttpClient {
     this.timeoutMs = config.timeoutMs;
 
     if (config.rejectUnauthorized === false) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new AdpAPIError(
+          'rejectUnauthorized: false is not allowed in production — TLS certificate verification cannot be disabled.',
+          ERROR_CODES.REQUEST_FAILED,
+        );
+      }
       const warning = '[adp-sdk] WARNING: rejectUnauthorized is false — TLS certificate verification is disabled. Do not use this in production.';
       if (this.logger) {
         this.logger(warning);
@@ -41,9 +47,22 @@ export class AdpHttpClient {
       }
     }
 
+    let cert: Buffer;
+    let key: Buffer;
+    try {
+      cert = fs.readFileSync(config.certPath);
+    } catch (err) {
+      throw new AdpAPIError(`Cannot read mTLS certificate: ${config.certPath}`, ERROR_CODES.REQUEST_FAILED, undefined, undefined, undefined, err);
+    }
+    try {
+      key = fs.readFileSync(config.keyPath);
+    } catch (err) {
+      throw new AdpAPIError(`Cannot read mTLS private key: ${config.keyPath}`, ERROR_CODES.REQUEST_FAILED, undefined, undefined, undefined, err);
+    }
+
     this.agent = new https.Agent({
-      cert: fs.readFileSync(config.certPath),
-      key: fs.readFileSync(config.keyPath),
+      cert,
+      key,
       rejectUnauthorized: config.rejectUnauthorized,
     });
 
@@ -63,7 +82,12 @@ export class AdpHttpClient {
     this.tokenRefresher = tokenRefresher;
   }
 
-  /** Authenticated request — injects Bearer token */
+  /**
+   * Authenticated request — injects Bearer token.
+   * SAFETY: T is a trusted assertion on the ADP API response shape, not a runtime-validated type.
+   * Axios does not validate that the response body matches T. Callers supply expected shapes
+   * (e.g., `{ workers?: AdpWorker[] }`) based on ADP's documented API contract.
+   */
   async request<T extends Record<string, unknown>>(
     method: 'GET' | 'POST',
     url: string,
@@ -93,7 +117,11 @@ export class AdpHttpClient {
     }
   }
 
-  /** Unauthenticated request — for token endpoint (uses Basic auth externally) */
+  /**
+   * Unauthenticated request — for token endpoint (uses Basic auth externally).
+   * SAFETY: T is a trusted assertion on the response shape, not runtime-validated.
+   * The token endpoint response is checked for `access_token` presence in TokenManager.
+   */
   async requestNoAuth<T extends Record<string, unknown>>(
     method: 'POST',
     url: string,

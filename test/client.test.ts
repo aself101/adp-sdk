@@ -90,6 +90,99 @@ describe('AdpClient', () => {
     expect(mockClient.request).toHaveBeenCalledTimes(2);
   });
 
+  it('fetchAllWorkersAsync delegates through client and returns workers', async () => {
+    const { default: axios } = await import('axios');
+
+    const client = new AdpClient(testConfig);
+    const mockClient = await getLatestMockClient();
+
+    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { access_token: 'tok' },
+      headers: {},
+    });
+
+    // Initial async request
+    mockClient.request.mockResolvedValueOnce({
+      data: {},
+      headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
+    });
+
+    // Poll returns workers
+    mockClient.request.mockResolvedValueOnce({
+      data: { workers: [{ associateOID: 'W1' }] },
+      headers: {},
+    });
+
+    const workers = await client.fetchAllWorkersAsync();
+
+    expect(workers).toHaveLength(1);
+    expect(workers[0]!.associateOID).toBe('W1');
+  });
+
+  it('fetchTalent delegates through client and returns competencies', async () => {
+    const { default: axios } = await import('axios');
+
+    const client = new AdpClient(testConfig);
+    const mockClient = await getLatestMockClient();
+
+    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { access_token: 'tok' },
+      headers: {},
+    });
+
+    mockClient.request.mockResolvedValueOnce({
+      data: { associateCompetencies: [{ competencyID: 'C1' }] },
+      headers: {},
+    });
+
+    const result = await client.fetchTalent('OID1');
+
+    expect(result).toHaveLength(1);
+  });
+
+  it('fetchVacationBalances delegates through client and returns balances', async () => {
+    const { default: axios } = await import('axios');
+
+    const client = new AdpClient(testConfig);
+    const mockClient = await getLatestMockClient();
+
+    (axios.request as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { access_token: 'tok' },
+      headers: {},
+    });
+
+    mockClient.request.mockResolvedValueOnce({
+      data: { paidTimeOffDetails: [{ balance: 40 }] },
+      headers: {},
+    });
+
+    const result = await client.fetchVacationBalances('OID1');
+
+    expect(result).toHaveLength(1);
+  });
+
+  it('refreshAuth forces a token refresh', async () => {
+    const { default: axios } = await import('axios');
+
+    const client = new AdpClient(testConfig);
+
+    (axios.request as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({
+        data: { access_token: 'token-1' },
+        headers: {},
+      })
+      .mockResolvedValueOnce({
+        data: { access_token: 'token-2' },
+        headers: {},
+      });
+
+    await client.refreshAuth();
+    await client.refreshAuth();
+
+    // Two token requests should have been made (not cached)
+    expect(axios.request).toHaveBeenCalledTimes(2);
+  });
+
   it('fetchWorker returns undefined when workers array is empty', async () => {
     const { default: axios } = await import('axios');
 

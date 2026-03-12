@@ -103,6 +103,19 @@ describe('fetchAllWorkersAsync', () => {
     await expect(fetchAllWorkersAsync(httpClient, null)).rejects.toThrow('missing Link header');
   });
 
+  it('throws on unsafe http:// poll URL', async () => {
+    const httpClient = createMockHttpClient();
+    const request = httpClient.request as ReturnType<typeof vi.fn>;
+
+    // Initial request returns an http:// (non-HTTPS) link
+    request.mockResolvedValueOnce({
+      data: {},
+      headers: { link: '<http://attacker.com/poll>', 'retry-after': '0' },
+    });
+
+    await expect(fetchAllWorkersAsync(httpClient, null)).rejects.toThrow('Unsafe async poll URL');
+  });
+
   it('uses retry-after from poll response headers', async () => {
     const httpClient = createMockHttpClient();
     const request = httpClient.request as ReturnType<typeof vi.fn>;
