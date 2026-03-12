@@ -1,13 +1,7 @@
 import type { AdpHttpClient } from '../http/http-client.js';
 import type { AdpCompetency } from '../types.js';
-import { API_PATHS, ERROR_CODES } from '../config/constants.js';
-import { AdpAPIError } from '../errors.js';
-
-function validateOid(oid: string): void {
-  if (!/^[A-Z0-9_-]+$/i.test(oid)) {
-    throw new AdpAPIError(`Invalid OID format: ${oid}`, ERROR_CODES.REQUEST_FAILED);
-  }
-}
+import { API_PATHS } from '../config/constants.js';
+import { validateOid } from '../utils/validation.js';
 
 /** Fetch talent/competency data for a worker */
 export async function fetchTalent(

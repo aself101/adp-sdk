@@ -31,7 +31,7 @@ const config: ResolvedConfig = {
   clientSecret: 'secret',
   timeoutMs: 30000,
   rejectUnauthorized: true,
-  log: null,
+  logger: null,
 };
 
 function getMockClient() {

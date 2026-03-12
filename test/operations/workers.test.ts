@@ -18,10 +18,11 @@ describe('fetchAllWorkersAsync', () => {
       headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
     });
 
-    // First poll: 202 still processing (httpClient.request throws AdpAPIError)
-    request.mockRejectedValueOnce(
-      new AdpAPIError('Still processing', 'REQUEST_FAILED', 202, '/events/async/123', { 'retry-after': '0', link: '<https://api.adp.com/events/async/123>' }),
-    );
+    // First poll: still processing (no workers in response)
+    request.mockResolvedValueOnce({
+      data: {},
+      headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
+    });
 
     // Second poll: success
     request.mockResolvedValueOnce({
@@ -46,16 +47,18 @@ describe('fetchAllWorkersAsync', () => {
       headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
     });
 
-    // All polls return 202
-    const err202 = new AdpAPIError('Still processing', 'REQUEST_FAILED', 202, '/poll', { 'retry-after': '0', link: '<https://api.adp.com/events/async/123>' });
+    // All polls return no workers
     for (let i = 0; i < 3; i++) {
-      request.mockRejectedValueOnce(err202);
+      request.mockResolvedValueOnce({
+        data: {},
+        headers: { 'retry-after': '0' },
+      });
     }
 
     await expect(fetchAllWorkersAsync(httpClient, null, 3)).rejects.toThrow('timed out after max poll attempts');
   });
 
-  it('rethrows non-202 errors during polling', async () => {
+  it('rethrows errors during polling', async () => {
     const httpClient = createMockHttpClient();
     const request = httpClient.request as ReturnType<typeof vi.fn>;
 
@@ -71,20 +74,6 @@ describe('fetchAllWorkersAsync', () => {
     );
 
     await expect(fetchAllWorkersAsync(httpClient, null)).rejects.toThrow('Server error');
-  });
-
-  it('rethrows non-AdpAPIError errors', async () => {
-    const httpClient = createMockHttpClient();
-    const request = httpClient.request as ReturnType<typeof vi.fn>;
-
-    request.mockResolvedValueOnce({
-      data: {},
-      headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
-    });
-
-    request.mockRejectedValueOnce(new Error('unexpected'));
-
-    await expect(fetchAllWorkersAsync(httpClient, null)).rejects.toThrow('unexpected');
   });
 
   it('throws immediately with maxAttempts=0', async () => {
@@ -112,5 +101,33 @@ describe('fetchAllWorkersAsync', () => {
     });
 
     await expect(fetchAllWorkersAsync(httpClient, null)).rejects.toThrow('missing Link header');
+  });
+
+  it('uses retry-after from poll response headers', async () => {
+    const httpClient = createMockHttpClient();
+    const request = httpClient.request as ReturnType<typeof vi.fn>;
+
+    // Initial request
+    request.mockResolvedValueOnce({
+      data: {},
+      headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
+    });
+
+    // Poll: still processing with custom retry-after
+    request.mockResolvedValueOnce({
+      data: {},
+      headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
+    });
+
+    // Poll: success
+    request.mockResolvedValueOnce({
+      data: { workers: [{ associateOID: 'W1' }] },
+      headers: {},
+    });
+
+    const workers = await fetchAllWorkersAsync(httpClient, null);
+
+    expect(workers).toHaveLength(1);
+    expect(request).toHaveBeenCalledTimes(3);
   });
 });

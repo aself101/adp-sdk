@@ -1,4 +1,4 @@
-import type { AdpClientConfig, AdpWorkerRaw, AdpCompetency, AdpVacationBalance } from './types.js';
+import type { AdpClientConfig, AdpWorker, AdpCompetency, AdpVacationBalance } from './types.js';
 import { loadConfig } from './config/loaders.js';
 import { AdpHttpClient } from './http/http-client.js';
 import { TokenManager } from './auth/token-manager.js';
@@ -26,7 +26,7 @@ import { fetchVacationBalances } from './operations/vacation.js';
 export class AdpClient {
   private readonly httpClient: AdpHttpClient;
   private readonly tokenManager: TokenManager;
-  private readonly log: ((message: string) => void) | null;
+  private readonly logger: ((message: string) => void) | null;
 
   /**
    * @param config - SDK configuration. Required fields (`certPath`, `keyPath`, `clientId`, `clientSecret`)
@@ -34,14 +34,14 @@ export class AdpClient {
    */
   constructor(config?: AdpClientConfig) {
     const resolved = loadConfig(config);
-    this.log = resolved.log;
+    this.logger = resolved.logger;
 
     this.httpClient = new AdpHttpClient(resolved);
     this.tokenManager = new TokenManager(
       resolved.clientId,
       resolved.clientSecret,
       resolved.tokenUrl,
-      resolved.log,
+      resolved.logger,
     );
 
     // Wire auth into HTTP client
@@ -56,8 +56,8 @@ export class AdpClient {
    * Sends `Prefer: respond-async` and polls until data is ready (up to 30 attempts).
    * @returns All worker records from the ADP API
    */
-  async fetchAllWorkersAsync(): Promise<AdpWorkerRaw[]> {
-    return fetchAllWorkersAsync(this.httpClient, this.log);
+  async fetchAllWorkersAsync(): Promise<AdpWorker[]> {
+    return fetchAllWorkersAsync(this.httpClient, this.logger);
   }
 
   /**
@@ -65,7 +65,7 @@ export class AdpClient {
    * @param oid - The associate OID (alphanumeric identifier)
    * @returns Worker data, or `undefined` if not found
    */
-  async fetchWorker(oid: string): Promise<AdpWorkerRaw | undefined> {
+  async fetchWorker(oid: string): Promise<AdpWorker | undefined> {
     return fetchWorker(this.httpClient, oid);
   }
 

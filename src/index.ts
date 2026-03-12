@@ -3,7 +3,7 @@ export { AdpAPIError } from './errors.js';
 
 export type {
   AdpClientConfig,
-  AdpWorkerRaw,
+  AdpWorker,
   AdpWorkAssignment,
   AdpNameCode,
   AdpLegalName,

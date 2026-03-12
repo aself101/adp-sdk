@@ -116,7 +116,7 @@ export interface AdpCustomFieldGroup {
 }
 
 /** Raw ADP worker record as returned by `/hr/v2/workers` */
-export interface AdpWorkerRaw {
+export interface AdpWorker {
   associateOID: string;
   person: {
     legalName: AdpLegalName;

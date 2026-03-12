@@ -66,8 +66,8 @@ const client = new AdpClient({
 
 ### `AdpClient`
 
-- **`fetchAllWorkersAsync()`** — Fetches all workers using ADP's async polling pattern (`Prefer: respond-async`). Returns `Promise<AdpWorkerRaw[]>`.
-- **`fetchWorker(oid)`** — Fetches a single worker by associate OID with unmasked data. Returns `Promise<AdpWorkerRaw | undefined>`.
+- **`fetchAllWorkersAsync()`** — Fetches all workers using ADP's async polling pattern (`Prefer: respond-async`). Returns `Promise<AdpWorker[]>`.
+- **`fetchWorker(oid)`** — Fetches a single worker by associate OID with unmasked data. Returns `Promise<AdpWorker | undefined>`.
 - **`fetchTalent(oid)`** — Fetches talent/competency data. Returns `Promise<AdpCompetency[]>`.
 - **`fetchVacationBalances(oid)`** — Fetches vacation/time-off balances. Returns `Promise<AdpVacationBalance[]>`.
 - **`refreshAuth()`** — Forces a token refresh.
@@ -93,7 +93,7 @@ try {
 
 ```typescript
 import { AdpClient } from 'adp-sdk';
-import type { AdpWorkerRaw, AdpCompetency } from 'adp-sdk/types';
+import type { AdpWorker, AdpCompetency } from 'adp-sdk/types';
 import { AdpAPIError } from 'adp-sdk/errors';
 import { findPrimaryWorkAssignment } from 'adp-sdk/utils';
 import { API_PATHS, ERROR_CODES } from 'adp-sdk/config';

@@ -24,18 +24,18 @@ export class AdpHttpClient {
   private readonly client: AxiosInstance;
   private readonly agent: https.Agent;
   private readonly timeoutMs: number;
-  private readonly log: ((message: string) => void) | null;
+  private readonly logger: ((message: string) => void) | null;
   private tokenGetter: (() => Promise<string>) | null = null;
   private tokenRefresher: (() => Promise<void>) | null = null;
 
   constructor(config: ResolvedConfig) {
-    this.log = config.log;
+    this.logger = config.logger;
     this.timeoutMs = config.timeoutMs;
 
     if (config.rejectUnauthorized === false) {
       const warning = '[adp-sdk] WARNING: rejectUnauthorized is false — TLS certificate verification is disabled. Do not use this in production.';
-      if (this.log) {
-        this.log(warning);
+      if (this.logger) {
+        this.logger(warning);
       } else {
         console.warn(warning);
       }
@@ -78,7 +78,7 @@ export class AdpHttpClient {
     } catch (err) {
       // On 401, try one token refresh and retry
       if (axios.isAxiosError(err) && err.response?.status === 401 && this.tokenRefresher) {
-        this.log?.('Token rejected (401), refreshing...');
+        this.logger?.('Token rejected (401), refreshing...');
         await this.tokenRefresher();
         const newToken = await this.tokenGetter();
 

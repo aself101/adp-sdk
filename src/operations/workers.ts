@@ -1,15 +1,9 @@
 import type { AdpHttpClient } from '../http/http-client.js';
-import type { AdpWorkerRaw } from '../types.js';
+import type { AdpWorker } from '../types.js';
 import type { AsyncHeaders } from '../types-internal.js';
 import { AdpAPIError } from '../errors.js';
 import { API_PATHS, ASYNC_POLL_MAX_ATTEMPTS, ERROR_CODES } from '../config/constants.js';
-
-/** Validate ADP OID format — alphanumeric, hyphens, and underscores only */
-function validateOid(oid: string): void {
-  if (!/^[A-Z0-9_-]+$/i.test(oid)) {
-    throw new AdpAPIError(`Invalid OID format: ${oid}`, ERROR_CODES.REQUEST_FAILED);
-  }
-}
+import { validateOid } from '../utils/validation.js';
 
 /** Validate that a poll URL uses HTTPS to prevent redirect attacks */
 function validatePollUrl(url: string): void {
@@ -42,10 +36,10 @@ function parseAsyncHeaders(headers: Record<string, string>): AsyncHeaders {
 /** Fetch all workers using ADP's async polling pattern */
 export async function fetchAllWorkersAsync(
   httpClient: AdpHttpClient,
-  log?: ((message: string) => void) | null,
+  logger?: ((message: string) => void) | null,
   maxAttempts: number = ASYNC_POLL_MAX_ATTEMPTS,
-): Promise<AdpWorkerRaw[]> {
-  log?.('Initiating async worker fetch...');
+): Promise<AdpWorker[]> {
+  logger?.('Initiating async worker fetch...');
 
   // Step 1: Initial request triggers async processing
   const initial = await httpClient.request<Record<string, unknown>>('GET', API_PATHS.WORKERS, {
@@ -55,27 +49,25 @@ export async function fetchAllWorkersAsync(
 
   const { link, retryAfter } = parseAsyncHeaders(initial.headers);
   validatePollUrl(link);
-  log?.(`Async processing started. Polling in ${retryAfter}s...`);
+  logger?.(`Async processing started. Polling in ${retryAfter}s...`);
 
   // Step 2: Wait then poll for results
   await pause(retryAfter);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const result = await httpClient.request<{ workers: AdpWorkerRaw[] }>('GET', link);
-      const workers = result.data.workers ?? [];
-      log?.(`Fetched ${workers.length} workers`);
-      return workers;
-    } catch (err) {
-      if (err instanceof AdpAPIError && err.httpStatus === 202 && err.responseHeaders) {
-        const pollHeaders = parseAsyncHeaders(err.responseHeaders);
-        const waitTime = pollHeaders.retryAfter || retryAfter;
-        log?.(`Still processing, retry in ${waitTime}s (attempt ${attempt + 1}/${maxAttempts})`);
-        await pause(waitTime);
-      } else {
-        throw err;
-      }
+    const result = await httpClient.request<{ workers?: AdpWorker[] }>('GET', link);
+
+    // Data ready — return workers
+    if (result.data.workers) {
+      logger?.(`Fetched ${result.data.workers.length} workers`);
+      return result.data.workers;
     }
+
+    // Still processing (202 or empty response) — parse headers and poll again
+    const pollHeaders = result.headers['link'] ? parseAsyncHeaders(result.headers) : null;
+    const waitTime = pollHeaders?.retryAfter ?? retryAfter;
+    logger?.(`Still processing, retry in ${waitTime}s (attempt ${attempt + 1}/${maxAttempts})`);
+    await pause(waitTime);
   }
 
   throw new AdpAPIError(
@@ -88,9 +80,9 @@ export async function fetchAllWorkersAsync(
 export async function fetchWorker(
   httpClient: AdpHttpClient,
   oid: string,
-): Promise<AdpWorkerRaw | undefined> {
+): Promise<AdpWorker | undefined> {
   validateOid(oid);
-  const result = await httpClient.request<{ workers: AdpWorkerRaw[] }>(
+  const result = await httpClient.request<{ workers: AdpWorker[] }>(
     'GET',
     API_PATHS.WORKER(oid),
     { Accept: 'application/json;masked=false' },

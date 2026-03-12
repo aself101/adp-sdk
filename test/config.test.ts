@@ -75,7 +75,7 @@ describe('loadConfig', () => {
     expect(config.rejectUnauthorized).toBe(true);
   });
 
-  it('passes logger through as log', () => {
+  it('passes logger through', () => {
     const logger = vi.fn();
     const config = loadConfig({
       certPath: '/cert.pem',
@@ -85,10 +85,10 @@ describe('loadConfig', () => {
       logger,
     });
 
-    expect(config.log).toBe(logger);
+    expect(config.logger).toBe(logger);
   });
 
-  it('defaults log to null when no logger provided', () => {
+  it('defaults logger to null when not provided', () => {
     const config = loadConfig({
       certPath: '/cert.pem',
       keyPath: '/key.pem',
@@ -96,7 +96,7 @@ describe('loadConfig', () => {
       clientSecret: 'secret',
     });
 
-    expect(config.log).toBeNull();
+    expect(config.logger).toBeNull();
   });
 
   it('constructor args take precedence over env vars', () => {

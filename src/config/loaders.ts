@@ -11,7 +11,7 @@ export interface ResolvedConfig {
   readonly clientSecret: string;
   readonly timeoutMs: number;
   readonly rejectUnauthorized: boolean;
-  readonly log: ((message: string) => void) | null;
+  readonly logger: ((message: string) => void) | null;
 }
 
 function envOrThrow(key: string, configValue: string | undefined, label: string): string {
@@ -36,6 +36,6 @@ export function loadConfig(config?: AdpClientConfig): ResolvedConfig {
     clientSecret,
     timeoutMs: config?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     rejectUnauthorized: config?.rejectUnauthorized ?? true,
-    log: config?.logger ?? null,
+    logger: config?.logger ?? null,
   };
 }

@@ -9,16 +9,16 @@ const MAX_CONSECUTIVE_FAILURES = 5;
 export class TokenManager {
   private readonly clientIdAndSecretBase64: string;
   private readonly tokenUrl: string;
-  private readonly log: ((message: string) => void) | null;
+  private readonly logger: ((message: string) => void) | null;
   private token: AdpToken | null = null;
   private refreshPromise: Promise<string> | null = null;
   private consecutiveFailures = 0;
   private lastFailureTime = 0;
 
-  constructor(clientId: string, clientSecret: string, tokenUrl: string, log: ((message: string) => void) | null) {
+  constructor(clientId: string, clientSecret: string, tokenUrl: string, logger: ((message: string) => void) | null) {
     this.clientIdAndSecretBase64 = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
     this.tokenUrl = tokenUrl;
-    this.log = log;
+    this.logger = logger;
   }
 
   /** Get a valid token, refreshing if expired or missing */
@@ -52,20 +52,15 @@ export class TokenManager {
       const cooldownMs = Math.min(2 ** this.consecutiveFailures, 30) * 1000;
       const elapsed = Date.now() - this.lastFailureTime;
       if (elapsed < cooldownMs) {
-        throw new AdpAPIError(
-          `Token refresh throttled after ${this.consecutiveFailures} consecutive failures. Retry in ${Math.ceil((cooldownMs - elapsed) / 1000)}s.`,
-          ERROR_CODES.AUTH_FAILED,
-        );
+        const reason = this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES
+          ? `Token refresh circuit breaker open after ${MAX_CONSECUTIVE_FAILURES} consecutive failures. Retry in ${Math.ceil((cooldownMs - elapsed) / 1000)}s.`
+          : `Token refresh throttled after ${this.consecutiveFailures} consecutive failures. Retry in ${Math.ceil((cooldownMs - elapsed) / 1000)}s.`;
+        throw new AdpAPIError(reason, ERROR_CODES.AUTH_FAILED);
       }
-      if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-        throw new AdpAPIError(
-          `Token refresh circuit breaker open after ${MAX_CONSECUTIVE_FAILURES} consecutive failures. Check credentials and ADP service status.`,
-          ERROR_CODES.AUTH_FAILED,
-        );
-      }
+      // Cooldown elapsed — allow attempt (half-open for circuit breaker)
     }
 
-    this.log?.('Fetching ADP bearer token...');
+    this.logger?.('Fetching ADP bearer token...');
 
     try {
       const response = await httpClient.requestNoAuth<{ access_token: string }>(
@@ -83,7 +78,7 @@ export class TokenManager {
 
       this.token = { accessToken, expiresAt };
       this.consecutiveFailures = 0;
-      this.log?.('ADP bearer token acquired');
+      this.logger?.('ADP bearer token acquired');
 
       return accessToken;
     } catch (err) {
