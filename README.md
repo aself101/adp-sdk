@@ -99,6 +99,18 @@ import { findPrimaryWorkAssignment } from 'adp-sdk/utils';
 import { API_PATHS, ERROR_CODES } from 'adp-sdk/config';
 ```
 
+### Utilities
+
+```typescript
+import { findPrimaryWorkAssignment } from 'adp-sdk/utils';
+
+const worker = await client.fetchWorker('associate-oid');
+if (worker) {
+  const primary = findPrimaryWorkAssignment(worker.workAssignments);
+  console.log(primary?.jobTitle);
+}
+```
+
 ## How It Works
 
 1. **mTLS Authentication** — Uses client certificate + key for mutual TLS with ADP servers

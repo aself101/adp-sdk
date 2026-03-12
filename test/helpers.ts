@@ -1,5 +1,13 @@
 import { vi } from 'vitest';
 import type { AdpClientConfig } from '../src/types.js';
+import type { AdpHttpClient } from '../src/http/http-client.js';
+
+/** Create a mock AdpHttpClient with a mocked `request` method */
+export function createMockHttpClient(): AdpHttpClient {
+  return {
+    request: vi.fn(),
+  } as unknown as AdpHttpClient;
+}
 
 export const testConfig: AdpClientConfig = {
   baseUrl: 'https://api.adp.com',

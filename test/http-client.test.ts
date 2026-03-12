@@ -80,6 +80,38 @@ describe('AdpHttpClient', () => {
       expect(mockClient.request).toHaveBeenCalledTimes(2);
     });
 
+    it('throws after retry also returns 401', async () => {
+      const client = new AdpHttpClient(config);
+      const mockClient = getMockClient();
+
+      client.setAuth(
+        vi.fn(async () => 'token'),
+        vi.fn(async () => {}),
+      );
+
+      const make401 = () => {
+        const err = new Error('Unauthorized') as Error & { response?: { status: number; headers: Record<string, string> } };
+        err.response = { status: 401, headers: {} };
+        return err;
+      };
+
+      // First request: 401
+      (axios.isAxiosError as ReturnType<typeof vi.fn>)
+        .mockReturnValueOnce(true)   // 401 check in catch
+        .mockReturnValueOnce(true);  // isAxiosError in transformError (retry)
+      mockClient.request.mockRejectedValueOnce(make401());
+
+      // Retry also 401
+      mockClient.request.mockRejectedValueOnce(make401());
+
+      await expect(client.request('GET', '/test')).rejects.toSatisfy((err: AdpAPIError) => {
+        expect(err).toBeInstanceOf(AdpAPIError);
+        expect(err.code).toBe('AUTH_FAILED');
+        return true;
+      });
+      expect(mockClient.request).toHaveBeenCalledTimes(2);
+    });
+
     it('throws transformed error on non-401 axios error', async () => {
       const client = new AdpHttpClient(config);
       const mockClient = getMockClient();
@@ -137,13 +169,11 @@ describe('AdpHttpClient', () => {
         .mockReturnValueOnce(true); // isAxiosError in transformError
       mockClient.request.mockRejectedValueOnce(errTimeout);
 
-      try {
-        await client.request('GET', '/test');
-        expect.unreachable();
-      } catch (err) {
+      await expect(client.request('GET', '/test')).rejects.toSatisfy((err: AdpAPIError) => {
         expect(err).toBeInstanceOf(AdpAPIError);
-        expect((err as AdpAPIError).code).toBe('TIMEOUT');
-      }
+        expect(err.code).toBe('TIMEOUT');
+        return true;
+      });
     });
 
     it('transforms network errors', async () => {
@@ -158,13 +188,11 @@ describe('AdpHttpClient', () => {
         .mockReturnValueOnce(true);
       mockClient.request.mockRejectedValueOnce(errNet);
 
-      try {
-        await client.request('GET', '/test');
-        expect.unreachable();
-      } catch (err) {
+      await expect(client.request('GET', '/test')).rejects.toSatisfy((err: AdpAPIError) => {
         expect(err).toBeInstanceOf(AdpAPIError);
-        expect((err as AdpAPIError).code).toBe('NETWORK_ERROR');
-      }
+        expect(err.code).toBe('NETWORK_ERROR');
+        return true;
+      });
     });
 
     it('transforms non-axios Error', async () => {
@@ -175,13 +203,11 @@ describe('AdpHttpClient', () => {
       (axios.isAxiosError as ReturnType<typeof vi.fn>).mockReturnValue(false);
       mockClient.request.mockRejectedValueOnce(new Error('some error'));
 
-      try {
-        await client.request('GET', '/test');
-        expect.unreachable();
-      } catch (err) {
+      await expect(client.request('GET', '/test')).rejects.toSatisfy((err: AdpAPIError) => {
         expect(err).toBeInstanceOf(AdpAPIError);
-        expect((err as AdpAPIError).code).toBe('REQUEST_FAILED');
-      }
+        expect(err.code).toBe('REQUEST_FAILED');
+        return true;
+      });
     });
   });
 });

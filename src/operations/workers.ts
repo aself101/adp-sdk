@@ -48,7 +48,7 @@ export async function fetchAllWorkersAsync(
   log?.('Initiating async worker fetch...');
 
   // Step 1: Initial request triggers async processing
-  const initial = await httpClient.request<unknown>('GET', API_PATHS.WORKERS, {
+  const initial = await httpClient.request<Record<string, unknown>>('GET', API_PATHS.WORKERS, {
     roleCode: 'manager',
     Prefer: 'respond-async',
   });

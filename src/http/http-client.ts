@@ -64,7 +64,7 @@ export class AdpHttpClient {
   }
 
   /** Authenticated request — injects Bearer token */
-  async request<T>(
+  async request<T extends Record<string, unknown>>(
     method: 'GET' | 'POST',
     url: string,
     headers?: Record<string, string>,
@@ -74,19 +74,7 @@ export class AdpHttpClient {
     const token = await this.tokenGetter();
 
     try {
-      const response = await this.client.request<T>({
-        method,
-        url,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...headers,
-        },
-      });
-
-      return {
-        data: response.data,
-        headers: normalizeHeaders(response.headers),
-      };
+      return await this.doAuthenticatedRequest<T>(method, url, token, headers);
     } catch (err) {
       // On 401, try one token refresh and retry
       if (axios.isAxiosError(err) && err.response?.status === 401 && this.tokenRefresher) {
@@ -95,19 +83,7 @@ export class AdpHttpClient {
         const newToken = await this.tokenGetter();
 
         try {
-          const response = await this.client.request<T>({
-            method,
-            url,
-            headers: {
-              Authorization: `Bearer ${newToken}`,
-              ...headers,
-            },
-          });
-
-          return {
-            data: response.data,
-            headers: normalizeHeaders(response.headers),
-          };
+          return await this.doAuthenticatedRequest<T>(method, url, newToken, headers);
         } catch (retryErr) {
           throw this.transformError(retryErr, url);
         }
@@ -118,7 +94,7 @@ export class AdpHttpClient {
   }
 
   /** Unauthenticated request — for token endpoint (uses Basic auth externally) */
-  async requestNoAuth<T>(
+  async requestNoAuth<T extends Record<string, unknown>>(
     method: 'POST',
     url: string,
     data?: unknown,
@@ -141,6 +117,28 @@ export class AdpHttpClient {
     } catch (err) {
       throw this.transformError(err, url);
     }
+  }
+
+  /** Execute a single authenticated request */
+  private async doAuthenticatedRequest<T extends Record<string, unknown>>(
+    method: 'GET' | 'POST',
+    url: string,
+    token: string,
+    headers?: Record<string, string>,
+  ): Promise<{ data: T; headers: Record<string, string> }> {
+    const response = await this.client.request<T>({
+      method,
+      url,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...headers,
+      },
+    });
+
+    return {
+      data: response.data,
+      headers: normalizeHeaders(response.headers),
+    };
   }
 
   /** Transform unknown errors into AdpAPIError */

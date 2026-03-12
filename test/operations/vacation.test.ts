@@ -1,12 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { fetchVacationBalances } from '../../src/operations/vacation.js';
-import type { AdpHttpClient } from '../../src/http/http-client.js';
-
-function createMockHttpClient(): AdpHttpClient {
-  return {
-    request: vi.fn(),
-  } as unknown as AdpHttpClient;
-}
+import { createMockHttpClient } from '../helpers.js';
 
 describe('fetchVacationBalances', () => {
   it('fetches vacation balances for a worker OID', async () => {

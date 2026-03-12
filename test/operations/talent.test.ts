@@ -1,12 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { fetchTalent } from '../../src/operations/talent.js';
-import type { AdpHttpClient } from '../../src/http/http-client.js';
-
-function createMockHttpClient(): AdpHttpClient {
-  return {
-    request: vi.fn(),
-  } as unknown as AdpHttpClient;
-}
+import { createMockHttpClient } from '../helpers.js';
 
 describe('fetchTalent', () => {
   it('fetches competencies for a worker OID', async () => {

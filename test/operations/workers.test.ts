@@ -1,13 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fetchAllWorkersAsync } from '../../src/operations/workers.js';
 import { AdpAPIError } from '../../src/errors.js';
-import type { AdpHttpClient } from '../../src/http/http-client.js';
-
-function createMockHttpClient(): AdpHttpClient {
-  return {
-    request: vi.fn(),
-  } as unknown as AdpHttpClient;
-}
+import { createMockHttpClient } from '../helpers.js';
 
 describe('fetchAllWorkersAsync', () => {
   beforeEach(() => {
