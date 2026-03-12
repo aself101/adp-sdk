@@ -53,11 +53,13 @@ export class AdpClient {
 
   /**
    * Fetch all workers using ADP's async polling pattern.
-   * Sends `Prefer: respond-async` and polls until data is ready (up to 30 attempts).
+   * Sends `Prefer: respond-async` and polls until data is ready.
+   * @param options - Optional configuration
+   * @param options.maxAttempts - Maximum poll attempts before timeout (default: 30)
    * @returns All worker records from the ADP API
    */
-  async fetchAllWorkersAsync(): Promise<AdpWorker[]> {
-    return fetchAllWorkersAsync(this.httpClient, this.logger);
+  async fetchAllWorkersAsync(options?: { maxAttempts?: number }): Promise<AdpWorker[]> {
+    return fetchAllWorkersAsync(this.httpClient, this.logger, options?.maxAttempts);
   }
 
   /**
@@ -90,6 +92,14 @@ export class AdpClient {
   /** Force a token refresh, invalidating the cached token. */
   async refreshAuth(): Promise<void> {
     await this.tokenManager.refreshToken(this.httpClient);
+  }
+
+  /**
+   * Get the current auth and circuit breaker status for observability.
+   * @returns Object with `hasToken`, `consecutiveFailures`, and `circuitBreakerOpen` fields
+   */
+  getAuthStatus(): { hasToken: boolean; consecutiveFailures: number; circuitBreakerOpen: boolean } {
+    return this.tokenManager.getAuthStatus();
   }
 
   /** Zero all cached credentials and tokens. Call when shutting down. */

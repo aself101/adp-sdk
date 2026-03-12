@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-03-12
+
+### Added
+
+- `AdpClient.getAuthStatus()` method for observability — returns `{ hasToken, consecutiveFailures, circuitBreakerOpen }`
+- `fetchAllWorkersAsync({ maxAttempts })` option to configure async poll limit through the public API
+- `CONFIG_ERROR` error code for configuration failures (missing cert/key, invalid settings)
+- Prerequisites section in README with ADP Developer Portal link
+- `destroy()` and `getAuthStatus()` documented in README API section
+- Note clarifying subpath exports are equivalent to main entry point imports
+
+### Changed
+
+- Config-time cert/key read failures now use `CONFIG_ERROR` code instead of `REQUEST_FAILED`
+- Cert/key error messages now include actionable fix hints (file path + env var name)
+- `ASYNC_TIMEOUT` error message now includes attempt count and actionable suggestions
+- Quick start example uses realistic paths (`./certs/`) and `process.env` instead of placeholder strings
+- Production `rejectUnauthorized: false` check uses `CONFIG_ERROR` code
+
 ## [1.0.1] - 2026-03-12
 
 ### Changed

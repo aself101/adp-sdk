@@ -49,6 +49,17 @@ export class TokenManager {
     }
   }
 
+  /** Get the current auth/circuit breaker status for observability */
+  getAuthStatus(): { hasToken: boolean; consecutiveFailures: number; circuitBreakerOpen: boolean } {
+    const circuitBreakerOpen = this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES &&
+      (Date.now() - this.lastFailureTime) < Math.min(2 ** this.consecutiveFailures, 30) * 1000;
+    return {
+      hasToken: this.token !== null && Date.now() < this.token.expiresAt,
+      consecutiveFailures: this.consecutiveFailures,
+      circuitBreakerOpen,
+    };
+  }
+
   /** Zero all credentials and cached state. Call when done with this manager. */
   destroy(): void {
     this.clearToken();

@@ -10,16 +10,25 @@ Requires **Node.js >= 18**.
 npm install adp-sdk
 ```
 
+## Prerequisites
+
+You need ADP API credentials before using this SDK:
+
+1. **mTLS certificate and private key** — Issued by ADP when you register an application in the [ADP Developer Portal](https://developers.adp.com). Download the `.pem` files and store them securely.
+2. **Client ID and secret** — Provided by ADP alongside your certificate. These authenticate your OAuth token requests.
+
 ## Quick Start
+
+> **Note:** The `AdpClient` constructor reads the certificate and key files synchronously. Ensure the paths point to real files before constructing the client — placeholder paths will throw a `CONFIG_ERROR`.
 
 ```typescript
 import { AdpClient } from 'adp-sdk';
 
 const client = new AdpClient({
-  certPath: '/path/to/cert.pem',
-  keyPath: '/path/to/key.pem',
-  clientId: 'your-client-id',
-  clientSecret: 'your-client-secret',
+  certPath: './certs/adp-cert.pem',
+  keyPath: './certs/adp-key.pem',
+  clientId: process.env.ADP_CLIENT_ID!,
+  clientSecret: process.env.ADP_CLIENT_SECRET!,
 });
 
 // Fetch all workers (async polling)
@@ -33,6 +42,9 @@ const competencies = await client.fetchTalent('associate-oid');
 
 // Fetch vacation balances
 const balances = await client.fetchVacationBalances('associate-oid');
+
+// Clean up credentials when done
+client.destroy();
 ```
 
 ## Configuration
@@ -68,11 +80,13 @@ const client = new AdpClient({
 
 ### `AdpClient`
 
-- **`fetchAllWorkersAsync()`** — Fetches all workers using ADP's async polling pattern (`Prefer: respond-async`). Returns `Promise<AdpWorker[]>`.
+- **`fetchAllWorkersAsync(options?)`** — Fetches all workers using ADP's async polling pattern (`Prefer: respond-async`). Options: `{ maxAttempts?: number }` (default: 30). Returns `Promise<AdpWorker[]>`.
 - **`fetchWorker(oid)`** — Fetches a single worker by associate OID with unmasked data. Returns `Promise<AdpWorker | undefined>`.
 - **`fetchTalent(oid)`** — Fetches talent/competency data. Returns `Promise<AdpCompetency[]>`.
 - **`fetchVacationBalances(oid)`** — Fetches vacation/time-off balances. Returns `Promise<AdpVacationBalance[]>`.
 - **`refreshAuth()`** — Forces a token refresh. Useful after credential rotation or to proactively refresh before a burst of requests.
+- **`getAuthStatus()`** — Returns `{ hasToken, consecutiveFailures, circuitBreakerOpen }` for observability. Use in health checks to monitor auth state without triggering requests.
+- **`destroy()`** — Zeros all cached credentials and tokens in memory. Call when shutting down to prevent sensitive data lingering in process memory.
 
 ### Error Handling
 
@@ -99,18 +113,21 @@ try {
 |------|---------|
 | `AUTH_FAILED` | OAuth authentication or authorization failure (401/403) |
 | `TOKEN_EXPIRED` | Cached token expired and needs refresh |
+| `CONFIG_ERROR` | Configuration error — missing/unreadable cert, key, or invalid settings |
 | `REQUEST_FAILED` | Generic request failure (non-auth, non-timeout) |
 | `TIMEOUT` | Request timed out (ECONNABORTED) |
 | `NETWORK_ERROR` | Network-level failure (ECONNREFUSED, ENOTFOUND) |
 | `SERVICE_UNAVAILABLE` | Server error (5xx response) |
-| `ASYNC_TIMEOUT` | Async worker poll exceeded max attempts |
+| `ASYNC_TIMEOUT` | Async worker poll exceeded max attempts — try again or increase `maxAttempts` |
 
 ## Subpath Exports
+
+Both `AdpClient` and `AdpAPIError` are re-exported from the main `'adp-sdk'` entry point for convenience. The subpath imports below are equivalent and useful for tree-shaking or importing only what you need:
 
 ```typescript
 import { AdpClient } from 'adp-sdk';
 import type { AdpWorker, AdpCompetency, AdpVacationBalance, AdpClientConfig } from 'adp-sdk/types';
-import { AdpAPIError } from 'adp-sdk/errors';
+import { AdpAPIError } from 'adp-sdk/errors';   // same as: import { AdpAPIError } from 'adp-sdk'
 import { findPrimaryWorkAssignment } from 'adp-sdk/utils';
 import { API_PATHS, ERROR_CODES } from 'adp-sdk/config';
 ```

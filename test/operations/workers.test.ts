@@ -55,7 +55,7 @@ describe('fetchAllWorkersAsync', () => {
       });
     }
 
-    await expect(fetchAllWorkersAsync(httpClient, null, 3)).rejects.toThrow('timed out after max poll attempts');
+    await expect(fetchAllWorkersAsync(httpClient, null, 3)).rejects.toThrow('timed out after 3 poll attempts');
   });
 
   it('rethrows errors during polling', async () => {
@@ -85,7 +85,7 @@ describe('fetchAllWorkersAsync', () => {
       headers: { link: '<https://api.adp.com/events/async/123>', 'retry-after': '0' },
     });
 
-    await expect(fetchAllWorkersAsync(httpClient, null, 0)).rejects.toThrow('timed out after max poll attempts');
+    await expect(fetchAllWorkersAsync(httpClient, null, 0)).rejects.toThrow('timed out after 0 poll attempts');
     // Only the initial request should have been made, no poll attempts
     expect(request).toHaveBeenCalledTimes(1);
   });

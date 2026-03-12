@@ -73,7 +73,8 @@ export async function fetchAllWorkersAsync(
   }
 
   throw new AdpAPIError(
-    'ADP async worker fetch timed out after max poll attempts',
+    `ADP async worker fetch timed out after ${maxAttempts} poll attempts. ` +
+    'This may indicate heavy ADP server load. Try again later or increase maxAttempts in fetchAllWorkersAsync options.',
     ERROR_CODES.ASYNC_TIMEOUT,
   );
 }

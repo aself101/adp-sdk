@@ -36,7 +36,7 @@ export class AdpHttpClient {
       if (process.env.NODE_ENV === 'production') {
         throw new AdpAPIError(
           'rejectUnauthorized: false is not allowed in production — TLS certificate verification cannot be disabled.',
-          ERROR_CODES.REQUEST_FAILED,
+          ERROR_CODES.CONFIG_ERROR,
         );
       }
       this.logger?.('[adp-sdk] WARNING: rejectUnauthorized is false — TLS certificate verification is disabled. Do not use this in production.');
@@ -47,12 +47,12 @@ export class AdpHttpClient {
     try {
       cert = fs.readFileSync(config.certPath);
     } catch (err) {
-      throw new AdpAPIError(`Cannot read mTLS certificate: ${config.certPath}`, ERROR_CODES.REQUEST_FAILED, undefined, undefined, undefined, err);
+      throw new AdpAPIError(`Cannot read mTLS certificate: ${config.certPath}. Ensure the file exists and is readable. Set via certPath config or ADP_CERT_PATH env var.`, ERROR_CODES.CONFIG_ERROR, undefined, undefined, undefined, err);
     }
     try {
       key = fs.readFileSync(config.keyPath);
     } catch (err) {
-      throw new AdpAPIError(`Cannot read mTLS private key: ${config.keyPath}`, ERROR_CODES.REQUEST_FAILED, undefined, undefined, undefined, err);
+      throw new AdpAPIError(`Cannot read mTLS private key: ${config.keyPath}. Ensure the file exists and is readable. Set via keyPath config or ADP_KEY_PATH env var.`, ERROR_CODES.CONFIG_ERROR, undefined, undefined, undefined, err);
     }
 
     this.agent = new https.Agent({

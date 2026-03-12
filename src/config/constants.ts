@@ -26,6 +26,8 @@ export const ERROR_CODES = {
   AUTH_FAILED: 'AUTH_FAILED',
   /** Cached token expired and needs refresh */
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  /** Configuration error (missing/invalid cert, key, or required fields) */
+  CONFIG_ERROR: 'CONFIG_ERROR',
   /** Generic request failure (non-auth, non-timeout) */
   REQUEST_FAILED: 'REQUEST_FAILED',
   /** Request timed out (ECONNABORTED) */
