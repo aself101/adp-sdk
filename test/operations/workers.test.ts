@@ -116,7 +116,7 @@ describe('fetchAllWorkersAsync', () => {
     await expect(fetchAllWorkersAsync(httpClient, null)).rejects.toThrow('Unsafe async poll URL');
   });
 
-  it('uses retry-after from poll response headers', async () => {
+  it('polls multiple times before receiving workers', async () => {
     const httpClient = createMockHttpClient();
     const request = httpClient.request as ReturnType<typeof vi.fn>;
 

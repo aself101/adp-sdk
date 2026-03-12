@@ -2,7 +2,9 @@
 export class AdpAPIError extends Error {
   readonly code: string;
   readonly httpStatus?: number;
+  /** The API endpoint URL that produced this error, if available */
   readonly endpoint?: string;
+  /** Response headers from the failed HTTP request, if available */
   readonly responseHeaders?: Record<string, string>;
 
   constructor(message: string, code: string, httpStatus?: number, endpoint?: string, responseHeaders?: Record<string, string>, cause?: unknown) {

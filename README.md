@@ -81,10 +81,12 @@ try {
   await client.fetchWorker('oid');
 } catch (err) {
   if (err instanceof AdpAPIError) {
-    console.log(err.code);       // 'AUTH_FAILED', 'TIMEOUT', etc.
-    console.log(err.httpStatus);  // 401, 500, etc.
-    console.log(err.isRetryable()); // true for 5xx, timeout, network
-    console.log(err.isAuthError()); // true for 401/403
+    console.log(err.code);            // 'AUTH_FAILED', 'TIMEOUT', etc.
+    console.log(err.httpStatus);       // 401, 500, etc.
+    console.log(err.endpoint);         // '/hr/v2/workers/oid'
+    console.log(err.responseHeaders);  // headers from the failed response
+    console.log(err.isRetryable());    // true for 5xx, timeout, network
+    console.log(err.isAuthError());    // true for 401/403
   }
 }
 ```
@@ -114,6 +116,10 @@ if (worker) {
 ## How It Works
 
 1. **mTLS Authentication** — Uses client certificate + key for mutual TLS with ADP servers
-2. **OAuth Token Management** — Automatically fetches and caches Bearer tokens (1-hour TTL with 100s refresh buffer). Concurrent refresh calls are deduplicated.
+2. **OAuth Token Management** — Automatically fetches and caches Bearer tokens (1-hour TTL with 100s refresh buffer). Concurrent refresh calls are deduplicated. Consecutive auth failures trigger exponential backoff (circuit breaker after 5 failures).
 3. **401 Auto-Retry** — On token rejection, automatically refreshes and retries once
 4. **Async Polling** — The bulk worker fetch uses ADP's `respond-async` pattern: initial request triggers processing, then polls the `Link` header URL until results are ready (up to 30 attempts)
+
+## Best Practices
+
+- **Use a single `AdpClient` instance** — The client manages a single token lifecycle with built-in deduplication and caching. Creating multiple instances against the same credentials wastes token requests and bypasses the circuit breaker. Share one instance across your application.

@@ -130,6 +130,18 @@ describe('TokenManager', () => {
     expect(httpClient.requestNoAuth).toHaveBeenCalledTimes(1);
   });
 
+  it('throws when token endpoint returns empty response without access_token', async () => {
+    const httpClient = {
+      requestNoAuth: vi.fn().mockResolvedValue({
+        data: {},
+        headers: {},
+      }),
+    } as unknown as AdpHttpClient;
+    const tm = new TokenManager('id', 'secret', 'https://token-url', null);
+
+    await expect(tm.getValidToken(httpClient)).rejects.toThrow('Token endpoint did not return access_token');
+  });
+
   it('throttles after consecutive auth failures', async () => {
     const httpClient = {
       requestNoAuth: vi.fn().mockRejectedValue(new AdpAPIError('Unauthorized', 'AUTH_FAILED', 401)),

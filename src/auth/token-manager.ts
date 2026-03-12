@@ -70,6 +70,8 @@ export class TokenManager {
         { Authorization: `Basic ${this.clientIdAndSecretBase64}` },
       );
 
+      // SAFETY: response.data shape is trusted via the generic assertion on requestNoAuth<{ access_token: string }>.
+      // The explicit !accessToken guard below handles the case where ADP returns 200 without a token.
       const accessToken = response.data.access_token;
       if (!accessToken) {
         throw new AdpAPIError('Token endpoint did not return access_token', ERROR_CODES.AUTH_FAILED);

@@ -39,12 +39,7 @@ export class AdpHttpClient {
           ERROR_CODES.REQUEST_FAILED,
         );
       }
-      const warning = '[adp-sdk] WARNING: rejectUnauthorized is false — TLS certificate verification is disabled. Do not use this in production.';
-      if (this.logger) {
-        this.logger(warning);
-      } else {
-        console.warn(warning);
-      }
+      this.logger?.('[adp-sdk] WARNING: rejectUnauthorized is false — TLS certificate verification is disabled. Do not use this in production.');
     }
 
     let cert: Buffer;
