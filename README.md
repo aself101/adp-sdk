@@ -1,4 +1,4 @@
-# adp-sdk v1.1.0
+# adp-api v1.1.0
 
 TypeScript SDK for the ADP Workforce API. Handles mTLS OAuth authentication, async worker polling, and employee data retrieval.
 
@@ -7,7 +7,7 @@ Requires **Node.js >= 18**.
 ## Installation
 
 ```bash
-npm install adp-sdk
+npm install adp-api
 ```
 
 ## Prerequisites
@@ -22,7 +22,7 @@ You need ADP API credentials before using this SDK:
 > **Note:** The `AdpClient` constructor reads the certificate and key files synchronously. Ensure the paths point to real files before constructing the client — placeholder paths will throw a `CONFIG_ERROR`.
 
 ```typescript
-import { AdpClient } from 'adp-sdk';
+import { AdpClient } from 'adp-api';
 
 const client = new AdpClient({
   certPath: './certs/adp-cert.pem',
@@ -91,7 +91,7 @@ const client = new AdpClient({
 ### Error Handling
 
 ```typescript
-import { AdpAPIError } from 'adp-sdk';
+import { AdpAPIError } from 'adp-api';
 
 try {
   await client.fetchWorker('oid');
@@ -122,20 +122,20 @@ try {
 
 ## Subpath Exports
 
-Both `AdpClient` and `AdpAPIError` are re-exported from the main `'adp-sdk'` entry point for convenience. The subpath imports below are equivalent and useful for tree-shaking or importing only what you need:
+Both `AdpClient` and `AdpAPIError` are re-exported from the main `'adp-api'` entry point for convenience. The subpath imports below are equivalent and useful for tree-shaking or importing only what you need:
 
 ```typescript
-import { AdpClient } from 'adp-sdk';
-import type { AdpWorker, AdpCompetency, AdpVacationBalance, AdpClientConfig } from 'adp-sdk/types';
-import { AdpAPIError } from 'adp-sdk/errors';   // same as: import { AdpAPIError } from 'adp-sdk'
-import { findPrimaryWorkAssignment } from 'adp-sdk/utils';
-import { API_PATHS, ERROR_CODES } from 'adp-sdk/config';
+import { AdpClient } from 'adp-api';
+import type { AdpWorker, AdpCompetency, AdpVacationBalance, AdpClientConfig } from 'adp-api/types';
+import { AdpAPIError } from 'adp-api/errors';   // same as: import { AdpAPIError } from 'adp-api'
+import { findPrimaryWorkAssignment } from 'adp-api/utils';
+import { API_PATHS, ERROR_CODES } from 'adp-api/config';
 ```
 
 ### Utilities
 
 ```typescript
-import { findPrimaryWorkAssignment } from 'adp-sdk/utils';
+import { findPrimaryWorkAssignment } from 'adp-api/utils';
 
 const worker = await client.fetchWorker('associate-oid');
 if (worker) {

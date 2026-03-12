@@ -33,7 +33,7 @@ export class AdpHttpClient {
     this.timeoutMs = config.timeoutMs;
 
     if (config.rejectUnauthorized === false) {
-      this.logger?.('[adp-sdk] WARNING: rejectUnauthorized is false — TLS certificate verification is disabled. Do not use this in production.');
+      this.logger?.('[adp-api] WARNING: rejectUnauthorized is false — TLS certificate verification is disabled. Do not use this in production.');
     }
 
     let cert: Buffer;
