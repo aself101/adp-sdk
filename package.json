@@ -1,6 +1,6 @@
 {
-  "name": "adp-sdk",
-  "version": "1.0.2",
+  "name": "adp-api",
+  "version": "1.1.0",
   "description": "TypeScript SDK for the ADP Workforce API - mTLS OAuth authentication, async worker fetching, and employee data retrieval",
   "license": "MIT",
   "repository": {

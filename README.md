@@ -1,4 +1,4 @@
-# adp-sdk v1.0.2
+# adp-sdk v1.1.0
 
 TypeScript SDK for the ADP Workforce API. Handles mTLS OAuth authentication, async worker polling, and employee data retrieval.
 
