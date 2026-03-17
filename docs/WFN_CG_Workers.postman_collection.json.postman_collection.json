@@ -1,0 +1,1028 @@
+{
+	"info": {
+		"_postman_id": "6e3285fe-b884-48b0-b4d3-bf7094c1d16e",
+		"name": "WFN_CG_Workers.postman_collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36627485"
+	},
+	"item": [
+		{
+			"name": "Access token",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client-id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client-secret}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{service-root}}/auth/oauth/v2/token",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"auth",
+						"oauth",
+						"v2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve all workers",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve individual worker",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers/G3CHQPRW483NMFGA",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers",
+						"G3CHQPRW483NMFGA"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the worker response using top and Skip parameters",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$top=5&$skip=5",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$top",
+							"value": "5"
+						},
+						{
+							"key": "$skip",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve partial masked data for DOB and taxID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve unmasked data for DOB and taxID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json;masked=false",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve fully masked data for Tax ID and Birthdate",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json;masked=false",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve unmasked data using individual AOID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json;masked=false",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers/G3CHQPRW483NMFGA",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers",
+						"G3CHQPRW483NMFGA"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the future hired employee details in Workers call",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$top=50&$skip=150",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$top",
+							"value": "50"
+						},
+						{
+							"key": "$skip",
+							"value": "150"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the future hired employee details when using individual AOID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers/G3R47DSRZK5TRCFJ",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers",
+						"G3R47DSRZK5TRCFJ"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the future hired employee with $select=workers/associateOID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$top=50&$skip=150&$select=workers/associateOID",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$top",
+							"value": "50"
+						},
+						{
+							"key": "$skip",
+							"value": "150"
+						},
+						{
+							"key": "$select",
+							"value": "workers/associateOID"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the Salary information(baseRemuneration details) of future hired employee",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers/G3R47DSRZK5TRCFJ",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers",
+						"G3R47DSRZK5TRCFJ"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve Add Business Unit and Home Cost Number using filter",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$filter=workers/workAssignments/homeOrganizationalUnits/nameCode/codeValue eq '001000' and workers/workAssignments/homeOrganizationalUnits/typeCode/codeValue eq 'Department'",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$filter",
+							"value": "workers/workAssignments/homeOrganizationalUnits/nameCode/codeValue eq '001000' and workers/workAssignments/homeOrganizationalUnits/typeCode/codeValue eq 'Department'"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the \"workerTimeProfile\" (badgeID,timeAndAttendanceIndicator,timeZoneCode) details",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the payrollScheduleGroupID for an employee",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the payrollScheduleGroupID with select",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/workAssignments/payrollScheduleGroupID",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/workAssignments/payrollScheduleGroupID"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the payrollProcessingStatusCode",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the payrollClock and payrollDataControl details",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the NAICS field under industryClassifications",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the FLSA value in full workers response and using individual AOID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the FLSA value with $select=workers/workAssignments/wageLawCoverage",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/workAssignments/wageLawCoverage",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/workAssignments/wageLawCoverage"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the payrollFileNumber",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the payrollFileNumber with $select=workers/workAssignments/payrollFileNumber",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/workAssignments/payrollFileNumber",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/workAssignments/payrollFileNumber"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the Mail Stop details(i.e deliverypoint) in Full Workers response and using individual AOID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the HomeworkLocation with select",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/workAssignments/homeWorkLocation",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/workAssignments/homeWorkLocation"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Rettrieve the PayCycleCode with select",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/workAssignments/payCycleCode",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/workAssignments/payCycleCode"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Rettrieve the StandardPayPeriodHours with select",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/workAssignments/standardPayPeriodHours",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/workAssignments/standardPayPeriodHours"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Rettrieve the customFieldGroup with select",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/customFieldGroup",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/customFieldGroup"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Rettrieve the photos with select",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/photos",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/photos"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the baseRemuneration with select",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers?$select=workers/workAssignments/baseRemuneration",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "workers/workAssignments/baseRemuneration"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the reason codes for an employee who is on Leave",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve the reason code for an employee who is Rehired",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{service-root}}/hr/v2/workers",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"hr",
+						"v2",
+						"workers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Photo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"events\": [\n        {\n            \"data\": {\n                \"eventContext\": {\n                    \"worker\": {\n                        \"associateOID\": \"{{employeeAOID}}\"\n                    }\n                }\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{service-root}}/events/hr/v1/worker.photo.upload",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"events",
+						"hr",
+						"v1",
+						"worker.photo.upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove Photo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"events\": [\n        {\n            \"data\": {\n                \"eventContext\": {\n                    \"worker\": {\n                        \"associateOID\": \"{{employeeAOID}}\"\n                    }\n                }\n            },\n            \"eventNameCode\": {\n                \"codeValue\": \"worker.photo.remove\"\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{service-root}}/events/hr/v1/worker.photo.remove",
+					"host": [
+						"{{service-root}}"
+					],
+					"path": [
+						"events",
+						"hr",
+						"v1",
+						"worker.photo.remove"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "service-root",
+			"value": "https://api.adp.com"
+		}
+	]
+}
